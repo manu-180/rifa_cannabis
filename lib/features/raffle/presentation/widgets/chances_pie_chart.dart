@@ -126,7 +126,9 @@ class _ChancesPieChartState extends ConsumerState<ChancesPieChart>
     _needleController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2800),
-    )..addStatusListener((status) {
+    )
+      ..addListener(() => setState(() {}))
+      ..addStatusListener((status) {
         if (status != AnimationStatus.completed) return;
         if (!_isSimulationSpinning || _pendingSimSectionIndex == null) return;
         if (!mounted) return;
@@ -328,12 +330,8 @@ class _ChancesPieChartState extends ConsumerState<ChancesPieChart>
                   height: _chartHeight,
                   child: Center(
                     child: IgnorePointer(
-                      child: AnimatedBuilder(
-                        animation: _needleController,
-                        builder: (context, _) {
-                          final angle = _needleAngleDeg(stats);
-                          return _CenterNeedle(angleDeg: (angle * 100).round() / 100.0);
-                        },
+                      child: _CenterNeedle(
+                        angleDeg: (_needleAngleDeg(stats) * 100).round() / 100.0,
                       ),
                     ),
                   ),

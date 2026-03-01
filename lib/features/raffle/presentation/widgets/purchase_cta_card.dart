@@ -268,29 +268,27 @@ class _ContactSection extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: AppColors.primary.withValues(alpha: 0.35)),
               ),
-              child: Center(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const FaIcon(FontAwesomeIcons.whatsapp, color: AppColors.primary, size: 20),
-                    const SizedBox(width: 10),
-                    Flexible(
-                      child: Text(
-                        'Escribir a Manu',
-                        style: TextStyle(
-                          fontFamily: 'Oxanium',
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1.2,
-                          color: AppColors.primary,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const FaIcon(FontAwesomeIcons.whatsapp, color: AppColors.primary, size: 20),
+                  const SizedBox(width: 10),
+                  Flexible(
+                    child: Text(
+                      'Escribir a Manu',
+                      style: TextStyle(
+                        fontFamily: 'Oxanium',
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.2,
+                        color: AppColors.primary,
                       ),
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
