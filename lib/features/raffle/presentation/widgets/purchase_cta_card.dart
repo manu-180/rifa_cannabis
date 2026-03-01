@@ -233,10 +233,12 @@ class _ContactSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isOne = selected == 1;
+    final narrow = MediaQuery.of(context).size.width < 380;
     final message = 'Hola Manu, quiero reservar $selected ${selected == 1 ? "número" : "números"} para la rifa.';
     final uri = Uri.parse(
       'https://wa.me/$kWhatsAppNumber?text=${Uri.encodeComponent(message)}',
     );
+    final buttonLabel = narrow ? 'Manu' : 'Escribir a Manu';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -269,11 +271,12 @@ class _ContactSection extends StatelessWidget {
               child: Center(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const FaIcon(FontAwesomeIcons.whatsapp, color: AppColors.primary, size: 20),
                     const SizedBox(width: 10),
                     Text(
-                      'Escribir a Manu',
+                      buttonLabel,
                       style: TextStyle(
                         fontFamily: 'Oxanium',
                         fontSize: 15,

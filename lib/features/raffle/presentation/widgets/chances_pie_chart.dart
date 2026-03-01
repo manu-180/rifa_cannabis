@@ -293,13 +293,8 @@ class _ChancesPieChartState extends ConsumerState<ChancesPieChart>
                     pieTouchData: PieTouchData(
                       touchCallback: (FlTouchEvent event, PieTouchResponse? response) {
                         setState(() {
-                          if (!event.isInterestedForInteractions ||
-                              response == null ||
-                              response.touchedSection == null) {
-                            _touchedIndex = -1;
-                            return;
-                          }
-                          _touchedIndex = response.touchedSection!.touchedSectionIndex;
+                          _touchedIndex =
+                              response?.touchedSection?.touchedSectionIndex ?? -1;
                         });
                       },
                     ),
