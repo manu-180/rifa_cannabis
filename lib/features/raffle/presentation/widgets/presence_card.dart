@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rifa_cannabis/core/config/theme/app_colors.dart';
 import 'package:rifa_cannabis/core/providers/supabase_provider.dart';
 import 'package:rifa_cannabis/features/raffle/presentation/providers/presence_provider.dart';
+import 'package:rifa_cannabis/features/raffle/presentation/widgets/presence_leader_storage.dart';
 import 'package:realtime_client/realtime_client.dart';
 import 'package:supabase/supabase.dart';
 
@@ -21,10 +23,18 @@ class _PresenceCardState extends ConsumerState<PresenceCard> {
   bool _initialized = false;
   bool _hover = false;
   String? _myClientId;
+  Timer? _heartbeatTimer;
 
   static String _generateClientId() {
     final r = Random();
     return '${DateTime.now().millisecondsSinceEpoch}_${r.nextInt(0x7FFFFFFF)}';
+  }
+
+  void _doTrack() {
+    _channel?.track({
+      'online_at': DateTime.now().toIso8601String(),
+      'client_id': _myClientId,
+    });
   }
 
   void _initChannel(WidgetRef ref) {
@@ -41,10 +51,14 @@ class _PresenceCardState extends ConsumerState<PresenceCard> {
     });
     _channel!.subscribe((status, error) {
       if (status == RealtimeSubscribeStatus.subscribed) {
-        _channel!.track({
-          'online_at': DateTime.now().toIso8601String(),
-          'client_id': _myClientId,
-        });
+        if (presenceAmILeader() || presenceTryClaimLeader()) _doTrack();
+        _heartbeatTimer?.cancel();
+        _heartbeatTimer = Timer.periodic(
+          const Duration(seconds: 2),
+          (_) => presenceHeartbeatTick(() {
+            if (mounted && _channel != null) _doTrack();
+          }),
+        );
       }
     });
   }
@@ -163,6 +177,7 @@ class _PresenceCardState extends ConsumerState<PresenceCard> {
 
   @override
   void dispose() {
+    _heartbeatTimer?.cancel();
     _channel?.unsubscribe();
     super.dispose();
   }
