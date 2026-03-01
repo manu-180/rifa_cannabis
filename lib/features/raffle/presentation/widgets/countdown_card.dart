@@ -26,6 +26,7 @@ class _CountdownCardState extends ConsumerState<CountdownCard> {
   Timer? _timer;
   Duration _remaining = Duration.zero;
   bool _drawTriggered = false;
+  bool _hover = false;
 
   @override
   void initState() {
@@ -97,24 +98,41 @@ class _CountdownCardState extends ConsumerState<CountdownCard> {
     final s = _remaining.inSeconds % 60;
     final isDone = _remaining <= Duration.zero;
 
-    return Container(
-      padding: const EdgeInsets.only(top: 1, left: 24, right: 24, bottom: 24),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        color: const Color(0xFF0B1322),
-        border: Border.all(
-          color: AppColors.borderGlass,
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.4),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.only(top: 1, left: 24, right: 24, bottom: 24),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          color: const Color(0xFF0B1322),
+          border: Border.all(
+            color: _hover ? AppColors.primary.withValues(alpha: 0.5) : AppColors.borderGlass,
+            width: 1,
           ),
-        ],
-      ),
-          child: Column(
+          boxShadow: _hover
+              ? [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.12),
+                    blurRadius: 16,
+                    spreadRadius: 0,
+                  ),
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.4),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ]
+              : [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.4),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+        ),
+        child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               // Franja superior acento
@@ -172,7 +190,8 @@ class _CountdownCardState extends ConsumerState<CountdownCard> {
               else
                 _buildCountdown(d, h, m, s),
             ],
-          ),
+        ),
+      ),
     );
   }
 
