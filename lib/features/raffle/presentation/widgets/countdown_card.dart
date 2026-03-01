@@ -108,25 +108,25 @@ class _CountdownCardState extends ConsumerState<CountdownCard> {
           borderRadius: BorderRadius.circular(20),
           color: const Color(0xFF0B1322),
           border: Border.all(
-            color: _hover ? AppColors.primary.withValues(alpha: 0.5) : AppColors.borderGlass,
+            color: _hover ? AppColors.primary.withOpacity(0.5) : AppColors.borderGlass,
             width: 1,
           ),
           boxShadow: _hover
               ? [
                   BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.12),
+                    color: AppColors.primary.withOpacity(0.12),
                     blurRadius: 16,
                     spreadRadius: 0,
                   ),
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.4),
+                    color: Colors.black.withOpacity(0.4),
                     blurRadius: 20,
                     offset: const Offset(0, 8),
                   ),
                 ]
               : [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.4),
+                    color: Colors.black.withOpacity(0.4),
                     blurRadius: 20,
                     offset: const Offset(0, 8),
                   ),
@@ -143,9 +143,9 @@ class _CountdownCardState extends ConsumerState<CountdownCard> {
                   borderRadius: BorderRadius.circular(2),
                   gradient: LinearGradient(
                     colors: [
-                      AppColors.primary.withValues(alpha: 0.9),
-                      AppColors.secondary.withValues(alpha: 0.8),
-                      AppColors.primary.withValues(alpha: 0.5),
+                      AppColors.primary.withOpacity(0.9),
+                      AppColors.secondary.withOpacity(0.8),
+                      AppColors.primary.withOpacity(0.5),
                     ],
                     stops: const [0.0, 0.5, 1.0],
                   ),
@@ -168,7 +168,7 @@ class _CountdownCardState extends ConsumerState<CountdownCard> {
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 2.2,
-                      color: AppColors.primary.withValues(alpha: 0.95),
+                      color: AppColors.primary.withOpacity(0.95),
                     ),
                   ),
                 ],
@@ -181,7 +181,7 @@ class _CountdownCardState extends ConsumerState<CountdownCard> {
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   letterSpacing: 0.5,
-                  color: AppColors.textSecondary.withValues(alpha: 0.95),
+                  color: AppColors.textSecondary.withOpacity(0.95),
                 ),
               ),
               const SizedBox(height: 22),
@@ -199,9 +199,9 @@ class _CountdownCardState extends ConsumerState<CountdownCard> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       decoration: BoxDecoration(
-        color: AppColors.primary.withValues(alpha: 0.12),
+        color: AppColors.primary.withOpacity(0.12),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
+        border: Border.all(color: AppColors.primary.withOpacity(0.4)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -250,7 +250,7 @@ class _SeparatorDot extends StatelessWidget {
           fontFamily: 'Oxanium',
           fontSize: 26,
           fontWeight: FontWeight.w300,
-          color: AppColors.primary.withValues(alpha: 0.5),
+          color: AppColors.primary.withOpacity(0.5),
           height: 1.0,
         ),
       ),
@@ -275,12 +275,12 @@ class _TimeBlock extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             color: const Color(0xFF081018),
             border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.35),
+              color: AppColors.primary.withOpacity(0.35),
               width: 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.3),
+                color: Colors.black.withOpacity(0.3),
                 blurRadius: 8,
                 offset: const Offset(0, 3),
               ),
@@ -297,12 +297,12 @@ class _TimeBlock extends StatelessWidget {
               color: AppColors.textPrimary,
               shadows: [
                 Shadow(
-                  color: AppColors.primary.withValues(alpha: 0.35),
+                  color: AppColors.primary.withOpacity(0.35),
                   blurRadius: 12,
                   offset: const Offset(0, 0),
                 ),
                 Shadow(
-                  color: AppColors.primary.withValues(alpha: 0.15),
+                  color: AppColors.primary.withOpacity(0.15),
                   blurRadius: 24,
                   offset: const Offset(0, 2),
                 ),
@@ -318,7 +318,7 @@ class _TimeBlock extends StatelessWidget {
             fontSize: 10,
             fontWeight: FontWeight.w600,
             letterSpacing: 1.4,
-            color: AppColors.textSecondary.withValues(alpha: 0.9),
+            color: AppColors.textSecondary.withOpacity(0.9),
           ),
         ),
       ],

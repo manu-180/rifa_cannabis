@@ -88,19 +88,19 @@ class _PriceRowState extends State<_PriceRow> {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
             color: active
-                ? AppColors.primary.withValues(alpha: widget.isSelected ? 0.18 : 0.1)
-                : AppColors.background.withValues(alpha: 0.5),
+                ? AppColors.primary.withOpacity(widget.isSelected ? 0.18 : 0.1)
+                : AppColors.background.withOpacity(0.5),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
               color: active
-                  ? AppColors.primary.withValues(alpha: widget.isSelected ? 0.6 : 0.4)
+                  ? AppColors.primary.withOpacity(widget.isSelected ? 0.6 : 0.4)
                   : AppColors.borderGlass,
               width: active ? 1.2 : 1,
             ),
             boxShadow: active
                 ? [
                     BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.15),
+                      color: AppColors.primary.withOpacity(0.15),
                       blurRadius: 12,
                       spreadRadius: 0,
                       offset: const Offset(0, 2),

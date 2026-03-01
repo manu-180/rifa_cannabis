@@ -183,10 +183,10 @@ class _AdminViewState extends ConsumerState<AdminView> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                       decoration: BoxDecoration(
-                        color: (_isError ? AppColors.error : AppColors.success).withValues(alpha: 0.1),
+                        color: (_isError ? AppColors.error : AppColors.success).withOpacity(0.1),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: (_isError ? AppColors.error : AppColors.success).withValues(alpha: 0.3),
+                          color: (_isError ? AppColors.error : AppColors.success).withOpacity(0.3),
                         ),
                       ),
                       child: Row(

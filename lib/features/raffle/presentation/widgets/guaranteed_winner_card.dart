@@ -20,9 +20,9 @@ class GuaranteedWinnerCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.15),
+                  color: AppColors.primary.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
+                  border: Border.all(color: AppColors.primary.withOpacity(0.4)),
                 ),
                 child: const FaIcon(
                   FontAwesomeIcons.trophy,
