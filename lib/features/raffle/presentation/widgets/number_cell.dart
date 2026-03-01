@@ -1,7 +1,8 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:rifa_cannabis/core/config/theme/app_colors.dart';
 
-/// Una casilla del talonario (1-100). Hover: tooltip con dueño o "Disponible". Tap (móvil): mismo mensaje en cartel que se desvanece.
+/// Una casilla del talonario (1-100). Desktop: cartel al pasar el mouse. Móvil: cartel al tocar. Mismo cartel animado en ambos.
 class NumberCell extends StatefulWidget {
   final int number;
   final bool isSold;
@@ -20,21 +21,47 @@ class NumberCell extends StatefulWidget {
 
 class _NumberCellState extends State<NumberCell> {
   bool _hover = false;
+  OverlayEntry? _hoverOverlayEntry;
 
   String get _tooltipMessage => widget.isSold && widget.buyerName != null
       ? widget.buyerName!
       : 'Nº ${widget.number}${widget.isSold ? '' : ' — Disponible'}';
 
-  void _showTapOverlay() {
+  void _showHoverCartel() {
+    _removeHoverCartel();
     final overlay = Overlay.of(context);
     final box = context.findRenderObject() as RenderBox?;
     if (box == null || !box.hasSize) return;
     final rect = box.localToGlobal(Offset.zero) & box.size;
     late final OverlayEntry entry;
     entry = OverlayEntry(
-      builder: (context) => _CellTapOverlay(
+      builder: (context) => _CellCartelOverlay(
         message: _tooltipMessage,
         cellRect: rect,
+        persistThenFadeOut: false,
+        onDismiss: () => entry.remove(),
+      ),
+    );
+    _hoverOverlayEntry = entry;
+    overlay.insert(entry);
+  }
+
+  void _removeHoverCartel() {
+    _hoverOverlayEntry?.remove();
+    _hoverOverlayEntry = null;
+  }
+
+  void _showTapCartel() {
+    final overlay = Overlay.of(context);
+    final box = context.findRenderObject() as RenderBox?;
+    if (box == null || !box.hasSize) return;
+    final rect = box.localToGlobal(Offset.zero) & box.size;
+    late final OverlayEntry entry;
+    entry = OverlayEntry(
+      builder: (context) => _CellCartelOverlay(
+        message: _tooltipMessage,
+        cellRect: rect,
+        persistThenFadeOut: true,
         onDismiss: () => entry.remove(),
       ),
     );
@@ -44,17 +71,21 @@ class _NumberCellState extends State<NumberCell> {
   @override
   Widget build(BuildContext context) {
     return MouseRegion(
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
+      onEnter: (_) {
+        setState(() => _hover = true);
+        _showHoverCartel();
+      },
+      onExit: (_) {
+        setState(() => _hover = false);
+        _removeHoverCartel();
+      },
       cursor: SystemMouseCursors.basic,
-      child: Tooltip(
-        message: _tooltipMessage,
-        waitDuration: const Duration(milliseconds: 300),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: GestureDetector(
-          onTap: _showTapOverlay,
-          behavior: HitTestBehavior.opaque,
-          child: AnimatedContainer(
+      child: GestureDetector(
+        onTapDown: (TapDownDetails details) {
+          if (details.kind == PointerDeviceKind.touch) _showTapCartel();
+        },
+        behavior: HitTestBehavior.opaque,
+        child: AnimatedContainer(
             duration: const Duration(milliseconds: 150),
             width: 44,
             height: 44,
@@ -91,33 +122,33 @@ class _NumberCellState extends State<NumberCell> {
             ),
           ),
         ),
-      ),
     );
   }
 }
 
-/// Overlay que muestra el mensaje del número, con fade in, espera y fade out.
-class _CellTapOverlay extends StatefulWidget {
+/// Cartel del número. Hover: solo fade in y se mantiene (lo quita el padre). Tap: fade in, espera, fade out y onDismiss.
+class _CellCartelOverlay extends StatefulWidget {
   final String message;
   final Rect cellRect;
+  final bool persistThenFadeOut;
   final VoidCallback onDismiss;
 
-  const _CellTapOverlay({
+  const _CellCartelOverlay({
     required this.message,
     required this.cellRect,
+    required this.persistThenFadeOut,
     required this.onDismiss,
   });
 
   @override
-  State<_CellTapOverlay> createState() => _CellTapOverlayState();
+  State<_CellCartelOverlay> createState() => _CellCartelOverlayState();
 }
 
-class _CellTapOverlayState extends State<_CellTapOverlay>
+class _CellCartelOverlayState extends State<_CellCartelOverlay>
     with SingleTickerProviderStateMixin {
-  static const _fadeInMs = 200;
-  static const _visibleMs = 2200;
-  static const _fadeOutMs = 280;
-  static const _totalMs = _fadeInMs + _visibleMs + _fadeOutMs;
+  static const _fadeInMs = 180;
+  static const _visibleMs = 1500;
+  static const _fadeOutMs = 250;
 
   late final AnimationController _controller;
   late final Animation<double> _opacity;
@@ -125,32 +156,44 @@ class _CellTapOverlayState extends State<_CellTapOverlay>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: _totalMs),
-    );
-    _opacity = TweenSequence<double>([
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 0, end: 1)
-            .chain(CurveTween(curve: Curves.easeOut)),
-        weight: _fadeInMs.toDouble(),
-      ),
-      TweenSequenceItem(
-        tween: ConstantTween<double>(1),
-        weight: _visibleMs.toDouble(),
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 1, end: 0)
-            .chain(CurveTween(curve: Curves.easeIn)),
-        weight: _fadeOutMs.toDouble(),
-      ),
-    ]).animate(_controller);
-    _controller.forward();
-    _controller.addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        widget.onDismiss();
-      }
-    });
+    if (widget.persistThenFadeOut) {
+      const totalMs = _fadeInMs + _visibleMs + _fadeOutMs;
+      _controller = AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: totalMs),
+      );
+      _opacity = TweenSequence<double>([
+        TweenSequenceItem(
+          tween: Tween<double>(begin: 0, end: 1)
+              .chain(CurveTween(curve: Curves.easeOut)),
+          weight: _fadeInMs.toDouble(),
+        ),
+        TweenSequenceItem(
+          tween: ConstantTween<double>(1),
+          weight: _visibleMs.toDouble(),
+        ),
+        TweenSequenceItem(
+          tween: Tween<double>(begin: 1, end: 0)
+              .chain(CurveTween(curve: Curves.easeIn)),
+          weight: _fadeOutMs.toDouble(),
+        ),
+      ]).animate(_controller);
+      _controller.forward();
+      _controller.addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          widget.onDismiss();
+        }
+      });
+    } else {
+      _controller = AnimationController(
+        vsync: this,
+        duration: const Duration(milliseconds: _fadeInMs),
+      );
+      _opacity = Tween<double>(begin: 0, end: 1)
+          .chain(CurveTween(curve: Curves.easeOut))
+          .animate(_controller);
+      _controller.forward();
+    }
   }
 
   @override
@@ -219,3 +262,4 @@ class _CellTapOverlayState extends State<_CellTapOverlay>
     );
   }
 }
+
