@@ -36,7 +36,7 @@ class PurchaseCtaCard extends ConsumerWidget {
     return PremiumCard(
       padding: const EdgeInsets.all(24),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         mainAxisSize: MainAxisSize.min,
         children: [
           Row(
@@ -184,24 +184,31 @@ class _PriceRowState extends State<_PriceRow> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  if (widget.isSelected)
-                    Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 18),
+              Expanded(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (widget.isSelected)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: Icon(Icons.check_circle_rounded, color: AppColors.primary, size: 18),
+                      ),
+                    Flexible(
+                      child: Text(
+                        widget.label,
+                        style: TextStyle(
+                          fontFamily: 'Oxanium',
+                          fontSize: 14,
+                          color: active ? AppColors.primary : AppColors.textSecondary,
+                          fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.normal,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
-                  Text(
-                    widget.label,
-                    style: TextStyle(
-                      fontFamily: 'Oxanium',
-                      fontSize: 14,
-                      color: active ? AppColors.primary : AppColors.textSecondary,
-                      fontWeight: widget.isSelected ? FontWeight.w600 : FontWeight.normal,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Text(
                 widget.amount,
                 style: TextStyle(
@@ -210,6 +217,7 @@ class _PriceRowState extends State<_PriceRow> {
                   fontWeight: FontWeight.bold,
                   color: active ? AppColors.primary : AppColors.textPrimary,
                 ),
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -263,17 +271,22 @@ class _ContactSection extends StatelessWidget {
               child: Center(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const FaIcon(FontAwesomeIcons.whatsapp, color: AppColors.primary, size: 20),
                     const SizedBox(width: 10),
-                    Text(
-                      'Escribir a Manu',
-                      style: TextStyle(
-                        fontFamily: 'Oxanium',
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 1.2,
-                        color: AppColors.primary,
+                    Flexible(
+                      child: Text(
+                        'Escribir a Manu',
+                        style: TextStyle(
+                          fontFamily: 'Oxanium',
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.2,
+                          color: AppColors.primary,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
                       ),
                     ),
                   ],
