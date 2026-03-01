@@ -36,7 +36,7 @@ class PurchaseCtaCard extends ConsumerWidget {
     return PremiumCard(
       padding: const EdgeInsets.all(24),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
           Row(
@@ -186,7 +186,6 @@ class _PriceRowState extends State<_PriceRow> {
             children: [
               Expanded(
                 child: Row(
-                  mainAxisSize: MainAxisSize.min,
                   children: [
                     if (widget.isSelected)
                       Padding(
@@ -217,7 +216,6 @@ class _PriceRowState extends State<_PriceRow> {
                   fontWeight: FontWeight.bold,
                   color: active ? AppColors.primary : AppColors.textPrimary,
                 ),
-                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
@@ -268,14 +266,13 @@ class _ContactSection extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: AppColors.primary.withValues(alpha: 0.35)),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const FaIcon(FontAwesomeIcons.whatsapp, color: AppColors.primary, size: 20),
-                  const SizedBox(width: 10),
-                  Flexible(
-                    child: Text(
+              child: Center(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const FaIcon(FontAwesomeIcons.whatsapp, color: AppColors.primary, size: 20),
+                    const SizedBox(width: 10),
+                    Text(
                       'Escribir a Manu',
                       style: TextStyle(
                         fontFamily: 'Oxanium',
@@ -284,11 +281,9 @@ class _ContactSection extends StatelessWidget {
                         letterSpacing: 1.2,
                         color: AppColors.primary,
                       ),
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

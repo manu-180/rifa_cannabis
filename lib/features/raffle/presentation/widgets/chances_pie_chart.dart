@@ -126,9 +126,7 @@ class _ChancesPieChartState extends ConsumerState<ChancesPieChart>
     _needleController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2800),
-    )
-      ..addListener(() => setState(() {}))
-      ..addStatusListener((status) {
+    )..addStatusListener((status) {
         if (status != AnimationStatus.completed) return;
         if (!_isSimulationSpinning || _pendingSimSectionIndex == null) return;
         if (!mounted) return;
@@ -150,31 +148,17 @@ class _ChancesPieChartState extends ConsumerState<ChancesPieChart>
   }
 
   /// Secciones del PieChart. El índice tocado NO afecta la geometría (radio/color fijos).
-  /// Si no hay datos, un solo segmento con color primario evita el círculo gris (p. ej. en web).
   List<PieChartSectionData> _buildSections(List<BuyerStats> stats) {
-    if (stats.isEmpty) {
-      return [
-        PieChartSectionData(
-          value: 1,
-          title: '',
-          color: AppColors.primary.withValues(alpha: 0.4),
-          radius: 52,
-          borderSide: BorderSide(color: AppColors.primary.withValues(alpha: 0.5), width: 1),
-        ),
-      ];
-    }
     return stats.asMap().entries.map((e) {
       final i = e.key;
       final s = e.value;
       final color = _colors[i % _colors.length];
-      // Una sola sección (100%): color opaco para que no se vea gris/blanquecino en producción/web.
-      final useSolid = stats.length == 1;
       return PieChartSectionData(
         value: s.ticketCount.toDouble(),
         title: '',
-        color: useSolid ? color : color.withValues(alpha: 0.85),
+        color: color.withValues(alpha: 0.85),
         radius: 52,
-        borderSide: BorderSide(color: color.withValues(alpha: useSolid ? 0.6 : 0.5), width: 1),
+        borderSide: BorderSide(color: color.withValues(alpha: 0.5), width: 1),
       );
     }).toList();
   }
@@ -330,8 +314,12 @@ class _ChancesPieChartState extends ConsumerState<ChancesPieChart>
                   height: _chartHeight,
                   child: Center(
                     child: IgnorePointer(
-                      child: _CenterNeedle(
-                        angleDeg: (_needleAngleDeg(stats) * 100).round() / 100.0,
+                      child: AnimatedBuilder(
+                        animation: _needleController,
+                        builder: (context, _) {
+                          final angle = _needleAngleDeg(stats);
+                          return _CenterNeedle(angleDeg: (angle * 100).round() / 100.0);
+                        },
                       ),
                     ),
                   ),
