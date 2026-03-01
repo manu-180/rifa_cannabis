@@ -14,6 +14,7 @@ import 'package:rifa_cannabis/features/raffle/presentation/widgets/purchase_cta_
 import 'package:rifa_cannabis/features/raffle/presentation/widgets/raffle_board.dart';
 import 'package:rifa_cannabis/features/raffle/presentation/widgets/stats_ranking_card.dart';
 import 'package:rifa_cannabis/features/raffle/presentation/widgets/winner_card.dart';
+import 'package:rifa_cannabis/features/raffle/presentation/widgets/presence_card.dart';
 import 'package:rifa_cannabis/features/raffle/presentation/providers/raffle_provider.dart';
 
 /// Vista principal: talonario izquierda, estadísticas y cards derecha. Login y Admin en esquina.
@@ -55,34 +56,41 @@ class RaffleView extends ConsumerWidget {
                           ),
                         ],
                       ),
-                      if (isLoggedIn)
-                        TextButton.icon(
-                          onPressed: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(builder: (_) => const AdminView()),
-                            );
-                          },
-                          icon: const Icon(Icons.dashboard_customize_outlined, size: 20),
-                          label: const Text('Administrar'),
-                          style: TextButton.styleFrom(
-                            foregroundColor: AppColors.primary,
-                          ),
-                        )
-                      else
-                        TextButton.icon(
-                          onPressed: () async {
-                            await showDialog<bool>(
-                              context: context,
-                              barrierColor: Colors.black54,
-                              builder: (_) => const LoginModal(),
-                            );
-                          },
-                          icon: const Icon(Icons.login_outlined, size: 20),
-                          label: const Text('Iniciar sesión'),
-                          style: TextButton.styleFrom(
-                            foregroundColor: AppColors.textSecondary,
-                          ),
-                        ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const PresenceCard(),
+                          const SizedBox(width: 12),
+                          if (isLoggedIn)
+                            TextButton.icon(
+                              onPressed: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(builder: (_) => const AdminView()),
+                                );
+                              },
+                              icon: const Icon(Icons.dashboard_customize_outlined, size: 20),
+                              label: const Text('Administrar'),
+                              style: TextButton.styleFrom(
+                                foregroundColor: AppColors.primary,
+                              ),
+                            )
+                          else
+                            TextButton.icon(
+                              onPressed: () async {
+                                await showDialog<bool>(
+                                  context: context,
+                                  barrierColor: Colors.black54,
+                                  builder: (_) => const LoginModal(),
+                                );
+                              },
+                              icon: const Icon(Icons.login_outlined, size: 20),
+                              label: const Text('Iniciar sesión'),
+                              style: TextButton.styleFrom(
+                                foregroundColor: AppColors.textSecondary,
+                              ),
+                            ),
+                        ],
+                      ),
                     ],
                   ),
                 ),

@@ -1,0 +1,17 @@
+{
+  "name": "Rifa",
+  "short_name": "Rifa",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#050A12",
+  "theme_color": "#14B8A6",
+  "description": "Rifa 100 números. Sorteo 15/03. Premio 10g cannabis REPROCAN.",
+  "orientation": "portrait-primary",
+  "prefer_related_applications": false,
+  "icons": [
+    {"src": "icons/Icon-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "icons/Icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icons/Icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable"},
+    {"src": "icons/Icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}
