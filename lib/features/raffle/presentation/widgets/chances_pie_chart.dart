@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:rifa_cannabis/core/config/theme/app_colors.dart';
 import 'package:rifa_cannabis/features/raffle/domain/models/buyer_stats.dart';
@@ -10,6 +9,8 @@ import 'package:rifa_cannabis/features/raffle/presentation/widgets/premium_card.
 
 const _reserveHeight = 72.0;
 const _chartHeight = 200.0;
+const _innerRadius = 42.0;
+const _outerRadius = 94.0; // innerRadius + sectionWidth(52)
 
 class ChancesPieChart extends ConsumerStatefulWidget {
   const ChancesPieChart({super.key});
@@ -120,6 +121,28 @@ class _ChancesPieChartState extends ConsumerState<ChancesPieChart>
     _needleController.forward(from: 0);
   }
 
+  /// Hit-test: dado un punto del pointer relativo al centro del chart,
+  /// devuelve el índice de la sección tocada o -1.
+  int _hitTestSection(Offset localCenter, List<BuyerStats> stats) {
+    final dist = localCenter.distance;
+    if (dist < _innerRadius || dist > _outerRadius) return -1;
+
+    // Ángulo en grados (0° = derecha, crece clockwise como el painter).
+    double angleDeg = math.atan2(localCenter.dy, localCenter.dx) * 180 / math.pi;
+    if (angleDeg < 0) angleDeg += 360;
+
+    final total = stats.fold<double>(0, (s, e) => s + e.ticketCount);
+    if (total <= 0) return -1;
+
+    double cumulative = 0;
+    for (var i = 0; i < stats.length; i++) {
+      cumulative += stats[i].ticketCount;
+      final endAngle = (cumulative / total) * 360;
+      if (angleDeg <= endAngle) return i;
+    }
+    return stats.length - 1;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -145,22 +168,6 @@ class _ChancesPieChartState extends ConsumerState<ChancesPieChart>
   void dispose() {
     _needleController.dispose();
     super.dispose();
-  }
-
-  /// Secciones del PieChart. El índice tocado NO afecta la geometría (radio/color fijos).
-  List<PieChartSectionData> _buildSections(List<BuyerStats> stats) {
-    return stats.asMap().entries.map((e) {
-      final i = e.key;
-      final s = e.value;
-      final color = _colors[i % _colors.length];
-      return PieChartSectionData(
-        value: s.ticketCount.toDouble(),
-        title: '',
-        color: color.withOpacity(0.85),
-        radius: 52,
-        borderSide: BorderSide(color: color.withOpacity(0.5), width: 1),
-      );
-    }).toList();
   }
 
   @override
@@ -270,40 +277,50 @@ class _ChancesPieChartState extends ConsumerState<ChancesPieChart>
   }
 
   Widget _buildChartArea(List<BuyerStats> stats) {
-    // Las secciones se crean una vez y no cambian con el hover.
-    final sections = _buildSections(stats);
-
     return LayoutBuilder(
       builder: (context, constraints) {
         final w = constraints.maxWidth;
         final centerX = w / 2;
+        final centerY = _chartHeight / 2;
 
         return SizedBox(
           height: _chartHeight + _reserveHeight,
           child: Stack(
             clipBehavior: Clip.none,
             children: [
-              // 1) PieChart: recibe hover directamente (nada encima lo bloquea).
+              // 1) Donut chart con hover propio via MouseRegion / Listener.
               SizedBox(
                 height: _chartHeight,
-                child: PieChart(
-                  PieChartData(
-                    sectionsSpace: 1.5,
-                    centerSpaceRadius: 42,
-                    pieTouchData: PieTouchData(
-                      touchCallback: (FlTouchEvent event, PieTouchResponse? response) {
-                        setState(() {
-                          _touchedIndex =
-                              response?.touchedSection?.touchedSectionIndex ?? -1;
-                        });
-                      },
+                child: MouseRegion(
+                  onHover: (event) {
+                    final offset = Offset(event.localPosition.dx - centerX, event.localPosition.dy - centerY);
+                    final idx = _hitTestSection(offset, stats);
+                    if (idx != _touchedIndex) setState(() => _touchedIndex = idx);
+                  },
+                  onExit: (_) {
+                    if (_touchedIndex != -1) setState(() => _touchedIndex = -1);
+                  },
+                  child: GestureDetector(
+                    onTapDown: (details) {
+                      final offset = Offset(details.localPosition.dx - centerX, details.localPosition.dy - centerY);
+                      final idx = _hitTestSection(offset, stats);
+                      setState(() => _touchedIndex = idx);
+                    },
+                    child: CustomPaint(
+                      size: Size(w, _chartHeight),
+                      painter: _DonutPainter(
+                        stats: stats,
+                        colors: _colors,
+                        innerRadius: _innerRadius,
+                        outerRadius: _outerRadius,
+                        gapDeg: 1.2,
+                      ),
                     ),
-                    sections: sections,
                   ),
                 ),
               ),
 
-              // 2) Aguja: IgnorePointer para que no robe hover al PieChart.
+              // 2) Aguja
               if (stats.isNotEmpty)
                 SizedBox(
                   height: _chartHeight,
@@ -320,9 +337,7 @@ class _ChancesPieChartState extends ConsumerState<ChancesPieChart>
                   ),
                 ),
 
-              // 3) Callout: SIEMPRE en el árbol, SIEMPRE IgnorePointer.
-              //    Usa Opacity para mostrar/ocultar SIN agregar/quitar widgets.
-              //    IgnorePointer hace que NUNCA bloquee los eventos del PieChart.
+              // 3) Callout
               IgnorePointer(
                 child: _CalloutLayer(
                   touchedIndex: _touchedIndex,
@@ -332,7 +347,7 @@ class _ChancesPieChartState extends ConsumerState<ChancesPieChart>
                 ),
               ),
 
-              // 4) Ganador simulado (zona reservada abajo).
+              // 4) Ganador simulado
               if (_simulatedSectionIndex != null &&
                   _simulatedWinnerName != null &&
                   _simulatedSectionIndex! < stats.length)
@@ -352,7 +367,79 @@ class _ChancesPieChartState extends ConsumerState<ChancesPieChart>
   }
 }
 
-/// Capa del callout (punto + línea L + card). Siempre en el árbol, se muestra/oculta con Opacity.
+// ---------------------------------------------------------------------------
+// CustomPainter que dibuja el donut chart (reemplaza fl_chart PieChart).
+// ---------------------------------------------------------------------------
+class _DonutPainter extends CustomPainter {
+  _DonutPainter({
+    required this.stats,
+    required this.colors,
+    required this.innerRadius,
+    required this.outerRadius,
+    this.gapDeg = 1.2,
+  });
+
+  final List<BuyerStats> stats;
+  final List<Color> colors;
+  final double innerRadius;
+  final double outerRadius;
+  final double gapDeg;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final cx = size.width / 2;
+    final cy = size.height / 2;
+    final center = Offset(cx, cy);
+    final total = stats.fold<double>(0, (s, e) => s + e.ticketCount);
+    if (total <= 0) return;
+
+    final strokeWidth = outerRadius - innerRadius;
+    final drawRadius = innerRadius + strokeWidth / 2;
+    final gapRad = gapDeg * math.pi / 180;
+    final halfGap = gapRad / 2;
+
+    double startAngle = 0;
+
+    for (var i = 0; i < stats.length; i++) {
+      final sweepAngle = (stats[i].ticketCount / total) * 2 * math.pi;
+      final effectiveStart = startAngle + halfGap;
+      final effectiveSweep = sweepAngle - gapRad;
+
+      if (effectiveSweep > 0) {
+        final color = colors[i % colors.length];
+        final rect = Rect.fromCircle(center: center, radius: drawRadius);
+
+        // Arco relleno
+        final paint = Paint()
+          ..color = color.withOpacity(0.85)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = strokeWidth
+          ..strokeCap = StrokeCap.butt;
+        canvas.drawArc(rect, effectiveStart, effectiveSweep, false, paint);
+
+        // Borde exterior sutil
+        final borderPaint = Paint()
+          ..color = color.withOpacity(0.5)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.0;
+        final outerRect = Rect.fromCircle(center: center, radius: outerRadius);
+        canvas.drawArc(outerRect, effectiveStart, effectiveSweep, false, borderPaint);
+        final innerRect = Rect.fromCircle(center: center, radius: innerRadius);
+        canvas.drawArc(innerRect, effectiveStart, effectiveSweep, false, borderPaint);
+      }
+
+      startAngle += sweepAngle;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DonutPainter old) =>
+      old.stats != stats || old.innerRadius != innerRadius || old.outerRadius != outerRadius;
+}
+
+// ---------------------------------------------------------------------------
+// Callout layer (punto + línea L + card)
+// ---------------------------------------------------------------------------
 class _CalloutLayer extends StatelessWidget {
   const _CalloutLayer({
     required this.touchedIndex,
@@ -382,9 +469,7 @@ class _CalloutLayer extends StatelessWidget {
   static const _cardWidth = 160.0;
   static const _cardHeight = 44.0;
   static const _margin = 12.0;
-  /// Margen extra entre el anillo del donut y la card (para que no quede encimada).
   static const _gapFromRing = 28.0;
-  /// En zona abajo: empuja la card un poco más abajo del chart.
   static const _extraGapBelowChart = 14.0;
 
   double _middleDegreeForSection(int index) {
@@ -417,7 +502,6 @@ class _CalloutLayer extends StatelessWidget {
   Widget build(BuildContext context) {
     final valid = touchedIndex >= 0 && touchedIndex < stats.length;
 
-    // Si no es válido: renderiza un Positioned.fill vacío (mismo tipo de widget, no cambia estructura del árbol).
     if (!valid) {
       return Positioned.fill(child: const SizedBox.shrink());
     }
