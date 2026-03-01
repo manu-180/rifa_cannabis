@@ -220,7 +220,7 @@ class _PresenceCardState extends ConsumerState<PresenceCard> {
               ),
               const SizedBox(width: 8),
               Text(
-                count == 1 ? '1 viendo ahora' : '$count viendo ahora',
+                count == 1 ? '1 online' : '$count online',
                 style: TextStyle(
                   fontFamily: 'Oxanium',
                   fontSize: 12,
