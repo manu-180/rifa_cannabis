@@ -162,19 +162,19 @@ class _PriceRowState extends State<_PriceRow> {
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
             color: active
-                ? AppColors.primary.withOpacity(widget.isSelected ? 0.18 : 0.1)
-                : AppColors.background.withOpacity(0.5),
+                ? AppColors.primary.op(widget.isSelected ? 0.18 : 0.1)
+                : AppColors.background.op(0.5),
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
               color: active
-                  ? AppColors.primary.withOpacity(widget.isSelected ? 0.6 : 0.4)
+                  ? AppColors.primary.op(widget.isSelected ? 0.6 : 0.4)
                   : AppColors.borderGlass,
               width: active ? 1.2 : 1,
             ),
             boxShadow: active
                 ? [
                     BoxShadow(
-                      color: AppColors.primary.withOpacity(0.12),
+                      color: AppColors.primary.op(0.12),
                       blurRadius: 10,
                       offset: const Offset(0, 2),
                     ),
@@ -264,9 +264,9 @@ class _ContactSection extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 16),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.12),
+                color: AppColors.primary.op(0.12),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.primary.withOpacity(0.35)),
+                border: Border.all(color: AppColors.primary.op(0.35)),
               ),
               child: Center(
                 child: Row(

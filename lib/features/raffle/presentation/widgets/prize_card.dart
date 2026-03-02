@@ -20,9 +20,9 @@ class PrizeCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: AppColors.prizeGreen.withOpacity(0.2),
+                  color: AppColors.prizeGreen.op(0.2),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.prizeGreen.withOpacity(0.4)),
+                  border: Border.all(color: AppColors.prizeGreen.op(0.4)),
                 ),
                 child: const FaIcon(
                   FontAwesomeIcons.cannabis,
@@ -62,9 +62,9 @@ class PrizeCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: AppColors.prizeGreen.withOpacity(0.15),
+              color: AppColors.prizeGreen.op(0.15),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.prizeGreen.withOpacity(0.35)),
+              border: Border.all(color: AppColors.prizeGreen.op(0.35)),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,

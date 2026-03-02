@@ -59,10 +59,10 @@ class WhatsAppCard extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: AppColors.success.withOpacity(0.15),
+                  color: AppColors.success.op(0.15),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: AppColors.success.withOpacity(0.4),
+                    color: AppColors.success.op(0.4),
                   ),
                 ),
                 child: const FaIcon(

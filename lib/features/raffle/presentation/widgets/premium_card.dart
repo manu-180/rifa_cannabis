@@ -34,20 +34,20 @@ class _PremiumCardState extends State<PremiumCard> {
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: _hover ? accent.withOpacity(0.5) : AppColors.borderGlass,
+            color: _hover ? accent.op(0.5) : AppColors.borderGlass,
             width: _hover ? 1.5 : 1,
           ),
           boxShadow: _hover
               ? [
                   BoxShadow(
-                    color: accent.withOpacity(0.12),
+                    color: accent.op(0.12),
                     blurRadius: 16,
                     spreadRadius: 0,
                   ),
                 ]
               : [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
+                    color: Colors.black.op(0.2),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),

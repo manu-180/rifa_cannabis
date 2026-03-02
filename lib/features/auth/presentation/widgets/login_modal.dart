@@ -74,7 +74,7 @@ class _LoginModalState extends ConsumerState<LoginModal> {
           border: Border.all(color: AppColors.borderHighlight),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withOpacity(0.15),
+              color: AppColors.primary.op(0.15),
               blurRadius: 24,
               spreadRadius: 0,
             ),
@@ -93,9 +93,9 @@ class _LoginModalState extends ConsumerState<LoginModal> {
                     child: Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.15),
+                        color: AppColors.primary.op(0.15),
                         shape: BoxShape.circle,
-                        border: Border.all(color: AppColors.primary.withOpacity(0.4)),
+                        border: Border.all(color: AppColors.primary.op(0.4)),
                       ),
                       child: const Icon(Icons.lock_outline, color: AppColors.primary, size: 32),
                     ),
@@ -126,9 +126,9 @@ class _LoginModalState extends ConsumerState<LoginModal> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                       decoration: BoxDecoration(
-                        color: AppColors.error.withOpacity(0.1),
+                        color: AppColors.error.op(0.1),
                         borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppColors.error.withOpacity(0.3)),
+                        border: Border.all(color: AppColors.error.op(0.3)),
                       ),
                       child: Row(
                         children: [

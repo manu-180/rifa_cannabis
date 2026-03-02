@@ -83,7 +83,7 @@ class _RankRow extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: AppColors.background.withOpacity(0.5),
+          color: AppColors.background.op(0.5),
           borderRadius: BorderRadius.circular(10),
           border: Border.all(color: AppColors.borderGlass),
         ),
@@ -116,9 +116,9 @@ class _RankRow extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.2),
+                color: AppColors.primary.op(0.2),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                border: Border.all(color: AppColors.primary.op(0.3)),
               ),
               child: Text(
                 '${stats.probabilityPercent.toStringAsFixed(0)}% de ganar',

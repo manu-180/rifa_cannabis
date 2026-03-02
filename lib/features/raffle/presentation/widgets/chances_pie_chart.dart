@@ -226,9 +226,9 @@ class _ChancesPieChartState extends ConsumerState<ChancesPieChart>
         Container(
           padding: const EdgeInsets.all(6),
           decoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.12),
+            color: AppColors.primary.op(0.12),
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.borderHighlight.withOpacity(0.6)),
+            border: Border.all(color: AppColors.borderHighlight.op(0.6)),
           ),
           child: Icon(Icons.pie_chart_rounded, color: AppColors.primary, size: 18),
         ),
@@ -251,9 +251,9 @@ class _ChancesPieChartState extends ConsumerState<ChancesPieChart>
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.15),
+                  color: AppColors.primary.op(0.15),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.primary.withOpacity(0.4)),
+                  border: Border.all(color: AppColors.primary.op(0.4)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -411,7 +411,7 @@ class _DonutPainter extends CustomPainter {
 
         // Arco relleno
         final paint = Paint()
-          ..color = color.withOpacity(0.85)
+          ..color = color.op(0.85)
           ..style = PaintingStyle.stroke
           ..strokeWidth = strokeWidth
           ..strokeCap = StrokeCap.butt;
@@ -419,7 +419,7 @@ class _DonutPainter extends CustomPainter {
 
         // Borde exterior sutil
         final borderPaint = Paint()
-          ..color = color.withOpacity(0.5)
+          ..color = color.op(0.5)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 1.0;
         final outerRect = Rect.fromCircle(center: center, radius: outerRadius);
@@ -557,8 +557,8 @@ class _CalloutLayer extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: color,
-                  border: Border.all(color: AppColors.textPrimary.withOpacity(0.4), width: 1),
-                  boxShadow: [BoxShadow(color: color.withOpacity(0.5), blurRadius: 6)],
+                  border: Border.all(color: AppColors.textPrimary.op(0.4), width: 1),
+                  boxShadow: [BoxShadow(color: color.op(0.5), blurRadius: 6)],
                 ),
               ),
             ),
@@ -602,7 +602,7 @@ class _CalloutPainter extends CustomPainter {
       ..lineTo(lineEnd.dx, lineEnd.dy);
 
     final linePaint = Paint()
-      ..color = pointColor.withOpacity(0.65)
+      ..color = pointColor.op(0.65)
       ..strokeWidth = 1.8
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
@@ -625,12 +625,12 @@ class _SimulationNotification extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: AppColors.surface.withOpacity(0.98),
+          color: AppColors.surface.op(0.98),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.primary.withOpacity(0.5)),
+          border: Border.all(color: AppColors.primary.op(0.5)),
           boxShadow: [
-            BoxShadow(color: AppColors.primary.withOpacity(0.2), blurRadius: 16),
-            BoxShadow(color: Colors.black.withOpacity(0.25), blurRadius: 12, offset: const Offset(0, 2)),
+            BoxShadow(color: AppColors.primary.op(0.2), blurRadius: 16),
+            BoxShadow(color: Colors.black.op(0.25), blurRadius: 12, offset: const Offset(0, 2)),
           ],
         ),
         child: Row(
@@ -660,10 +660,10 @@ class _SimulatedWinnerBlock extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: AppColors.prizeGreen.withOpacity(0.08),
+          color: AppColors.prizeGreen.op(0.08),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.prizeGreen.withOpacity(0.35)),
-          boxShadow: [BoxShadow(color: AppColors.prizeGreen.withOpacity(0.1), blurRadius: 12)],
+          border: Border.all(color: AppColors.prizeGreen.op(0.35)),
+          boxShadow: [BoxShadow(color: AppColors.prizeGreen.op(0.1), blurRadius: 12)],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -680,14 +680,14 @@ class _SimulatedWinnerBlock extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 8),
-            FaIcon(FontAwesomeIcons.cannabis, color: AppColors.prizeGreen.withOpacity(0.8), size: 14),
+            FaIcon(FontAwesomeIcons.cannabis, color: AppColors.prizeGreen.op(0.8), size: 14),
             const SizedBox(width: 10),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.15),
+                color: AppColors.primary.op(0.15),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.primary.withOpacity(0.35)),
+                border: Border.all(color: AppColors.primary.op(0.35)),
               ),
               child: Text(
                 'Simulación',
@@ -727,7 +727,7 @@ class _NeedlePainter extends CustomPainter {
 
     canvas.drawCircle(Offset(cx, cy), 8, Paint()..color = AppColors.surface..style = PaintingStyle.fill);
     canvas.drawCircle(Offset(cx, cy), 8, Paint()..color = AppColors.primary..style = PaintingStyle.stroke..strokeWidth = 2);
-    canvas.drawCircle(Offset(cx, cy), 6, Paint()..color = AppColors.primary.withOpacity(0.4)..style = PaintingStyle.fill);
+    canvas.drawCircle(Offset(cx, cy), 6, Paint()..color = AppColors.primary.op(0.4)..style = PaintingStyle.fill);
 
     final path = Path()
       ..moveTo(cx, cy - 32)
@@ -738,7 +738,7 @@ class _NeedlePainter extends CustomPainter {
       ..lineTo(cx + 6, cy + 4)
       ..close();
     canvas.drawPath(path, Paint()..color = AppColors.primary..style = PaintingStyle.fill);
-    canvas.drawPath(path, Paint()..color = AppColors.secondary.withOpacity(0.6)..style = PaintingStyle.stroke..strokeWidth = 1);
+    canvas.drawPath(path, Paint()..color = AppColors.secondary.op(0.6)..style = PaintingStyle.stroke..strokeWidth = 1);
   }
 
   @override
@@ -759,10 +759,10 @@ class _CalloutCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withOpacity(0.5)),
+        border: Border.all(color: color.op(0.5)),
         boxShadow: [
-          BoxShadow(color: color.withOpacity(0.15), blurRadius: 12),
-          BoxShadow(color: Colors.black.withOpacity(0.25), blurRadius: 8, offset: const Offset(0, 2)),
+          BoxShadow(color: color.op(0.15), blurRadius: 12),
+          BoxShadow(color: Colors.black.op(0.25), blurRadius: 8, offset: const Offset(0, 2)),
         ],
       ),
       child: Row(
@@ -773,7 +773,7 @@ class _CalloutCard extends StatelessWidget {
             width: 8, height: 8,
             decoration: BoxDecoration(
               color: color, shape: BoxShape.circle,
-              boxShadow: [BoxShadow(color: color.withOpacity(0.5), blurRadius: 4)],
+              boxShadow: [BoxShadow(color: color.op(0.5), blurRadius: 4)],
             ),
           ),
           const SizedBox(width: 8),

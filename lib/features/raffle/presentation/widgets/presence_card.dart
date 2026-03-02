@@ -120,7 +120,7 @@ class _PresenceCardState extends ConsumerState<PresenceCard> {
                   style: TextStyle(
                     fontFamily: 'Oxanium',
                     fontSize: 10,
-                    color: AppColors.textSecondary.withOpacity(0.8),
+                    color: AppColors.textSecondary.op(0.8),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -136,7 +136,7 @@ class _PresenceCardState extends ConsumerState<PresenceCard> {
                           decoration: BoxDecoration(
                             color: isMe
                                 ? AppColors.prizeGreen
-                                : AppColors.textSecondary.withOpacity(0.6),
+                                : AppColors.textSecondary.op(0.6),
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -159,7 +159,7 @@ class _PresenceCardState extends ConsumerState<PresenceCard> {
                             style: TextStyle(
                               fontFamily: 'Oxanium',
                               fontSize: 11,
-                              color: AppColors.textSecondary.withOpacity(0.8),
+                              color: AppColors.textSecondary.op(0.8),
                             ),
                           ),
                         ],
@@ -200,16 +200,16 @@ class _PresenceCardState extends ConsumerState<PresenceCard> {
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: _hover ? AppColors.surface.withOpacity(0.95) : AppColors.surface,
+            color: _hover ? AppColors.surface.op(0.95) : AppColors.surface,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: _hover ? AppColors.primary.withOpacity(0.5) : AppColors.borderGlass,
+              color: _hover ? AppColors.primary.op(0.5) : AppColors.borderGlass,
               width: 1,
             ),
             boxShadow: _hover
                 ? [
                     BoxShadow(
-                      color: AppColors.primary.withOpacity(0.12),
+                      color: AppColors.primary.op(0.12),
                       blurRadius: 10,
                       spreadRadius: 0,
                     ),
@@ -227,7 +227,7 @@ class _PresenceCardState extends ConsumerState<PresenceCard> {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.prizeGreen.withOpacity(0.6),
+                      color: AppColors.prizeGreen.op(0.6),
                       blurRadius: 4,
                     ),
                   ],

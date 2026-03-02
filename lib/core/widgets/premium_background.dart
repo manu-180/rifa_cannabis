@@ -36,10 +36,10 @@ class PremiumBackground extends StatelessWidget {
                 end: Alignment(0.8, 0.6),
                 stops: const [0.0, 0.35, 0.65, 1.0],
                 colors: [
-                  AppColors.primary.withOpacity(0.06),
-                  AppColors.primary.withOpacity(0.02),
-                  AppColors.primaryDark.withOpacity(0.03),
-                  AppColors.secondary.withOpacity(0.04),
+                  AppColors.primary.op(0.06),
+                  AppColors.primary.op(0.02),
+                  AppColors.primaryDark.op(0.03),
+                  AppColors.secondary.op(0.04),
                 ],
               ),
             ),
@@ -67,8 +67,8 @@ class PremiumBackground extends StatelessWidget {
                 stops: const [0.5, 0.85, 1.0],
                 colors: [
                   Colors.transparent,
-                  Colors.black.withOpacity(0.15),
-                  Colors.black.withOpacity(0.35),
+                  Colors.black.op(0.15),
+                  Colors.black.op(0.35),
                 ],
               ),
             ),
@@ -91,8 +91,8 @@ class _OrbsPainter extends CustomPainter {
       center: Alignment.center,
       radius: 1.0,
       colors: [
-        AppColors.primary.withOpacity(0.09),
-        AppColors.primary.withOpacity(0.02),
+        AppColors.primary.op(0.09),
+        AppColors.primary.op(0.02),
         Colors.transparent,
       ],
       stops: const [0.0, 0.45, 1.0],
@@ -106,8 +106,8 @@ class _OrbsPainter extends CustomPainter {
       center: Alignment.center,
       radius: 1.0,
       colors: [
-        AppColors.secondary.withOpacity(0.07),
-        AppColors.primaryDark.withOpacity(0.02),
+        AppColors.secondary.op(0.07),
+        AppColors.primaryDark.op(0.02),
         Colors.transparent,
       ],
       stops: const [0.0, 0.5, 1.0],
@@ -121,7 +121,7 @@ class _OrbsPainter extends CustomPainter {
       center: Alignment.center,
       radius: 1.0,
       colors: [
-        AppColors.primary.withOpacity(0.045),
+        AppColors.primary.op(0.045),
         Colors.transparent,
       ],
       stops: const [0.0, 0.75],
@@ -138,7 +138,7 @@ class _GridPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     const step = 24.0;
     final paint = Paint()
-      ..color = AppColors.primary.withOpacity(0.03)
+      ..color = AppColors.primary.op(0.03)
       ..strokeWidth = 0.5;
 
     for (double x = 0; x <= size.width + step; x += step) {
@@ -149,7 +149,7 @@ class _GridPainter extends CustomPainter {
     }
 
     // Líneas de acento más visibles pero muy suaves (cada 4)
-    paint.color = AppColors.primary.withOpacity(0.055);
+    paint.color = AppColors.primary.op(0.055);
     paint.strokeWidth = 0.8;
     for (double x = 0; x <= size.width + step * 4; x += step * 4) {
       canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);

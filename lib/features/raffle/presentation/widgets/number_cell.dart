@@ -92,7 +92,7 @@ class _NumberCellState extends State<NumberCell> {
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: widget.isSold
-                  ? AppColors.primary.withOpacity(0.25)
+                  ? AppColors.primary.op(0.25)
                   : AppColors.surface,
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
@@ -104,7 +104,7 @@ class _NumberCellState extends State<NumberCell> {
               boxShadow: _hover && widget.isSold
                   ? [
                       BoxShadow(
-                        color: AppColors.primary.withOpacity(0.2),
+                        color: AppColors.primary.op(0.2),
                         blurRadius: 8,
                         spreadRadius: 0,
                       ),
@@ -228,7 +228,7 @@ class _CellCartelOverlayState extends State<_CellCartelOverlay>
           border: Border.all(color: AppColors.borderHighlight, width: 1),
           boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withOpacity(0.15),
+              color: AppColors.primary.op(0.15),
               blurRadius: 12,
               spreadRadius: 0,
             ),

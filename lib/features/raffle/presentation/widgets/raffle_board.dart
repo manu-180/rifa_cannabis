@@ -15,12 +15,12 @@ class RaffleBoard extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface.withOpacity(0.6),
+        color: AppColors.surface.op(0.6),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.borderGlass),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.op(0.3),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),

@@ -1,4 +1,14 @@
+import 'dart:ui' show Color;
 import 'package:flutter/material.dart';
+
+/// Operación segura de alpha que usa solo manipulación de bits ARGB.
+/// Evita withOpacity/withValues que fallan en dart2js release mode.
+extension SafeAlpha on Color {
+  Color op(double opacity) {
+    final alpha = (opacity.clamp(0.0, 1.0) * 255).round();
+    return Color((value & 0x00FFFFFF) | (alpha << 24));
+  }
+}
 
 /// Paleta: azul turquesa sutilmente verdoso (tecnológico). Verde solo para premio/cannabis.
 class AppColors {

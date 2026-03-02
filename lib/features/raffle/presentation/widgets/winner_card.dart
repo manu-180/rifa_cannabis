@@ -22,17 +22,17 @@ class WinnerCard extends ConsumerWidget {
         borderRadius: BorderRadius.circular(20),
         color: const Color(0xFF0B1322),
         border: Border.all(
-          color: AppColors.prizeGreen.withOpacity(0.35),
+          color: AppColors.prizeGreen.op(0.35),
           width: 1.2,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.4),
+            color: Colors.black.op(0.4),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
           BoxShadow(
-            color: AppColors.prizeGreen.withOpacity(0.12),
+            color: AppColors.prizeGreen.op(0.12),
             blurRadius: 24,
             spreadRadius: -4,
           ),
@@ -48,9 +48,9 @@ class WinnerCard extends ConsumerWidget {
               borderRadius: BorderRadius.circular(2),
               gradient: LinearGradient(
                 colors: [
-                  AppColors.prizeGreen.withOpacity(0.9),
-                  AppColors.prizeGreenDark.withOpacity(0.8),
-                  AppColors.prizeGreen.withOpacity(0.5),
+                  AppColors.prizeGreen.op(0.9),
+                  AppColors.prizeGreenDark.op(0.8),
+                  AppColors.prizeGreen.op(0.5),
                 ],
                 stops: const [0.0, 0.5, 1.0],
               ),
@@ -68,7 +68,7 @@ class WinnerCard extends ConsumerWidget {
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 2,
-                  color: AppColors.prizeGreen.withOpacity(0.95),
+                  color: AppColors.prizeGreen.op(0.95),
                 ),
               ),
             ],
@@ -82,16 +82,16 @@ class WinnerCard extends ConsumerWidget {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  AppColors.prizeGreen.withOpacity(0.08),
-                  AppColors.prizeGreen.withOpacity(0.04),
+                  AppColors.prizeGreen.op(0.08),
+                  AppColors.prizeGreen.op(0.04),
                 ],
               ),
               border: Border.all(
-                color: AppColors.prizeGreen.withOpacity(0.35),
+                color: AppColors.prizeGreen.op(0.35),
               ),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.prizeGreen.withOpacity(0.08),
+                  color: AppColors.prizeGreen.op(0.08),
                   blurRadius: 16,
                   spreadRadius: 0,
                 ),
@@ -126,7 +126,7 @@ class WinnerCard extends ConsumerWidget {
                 const SizedBox(width: 14),
                 FaIcon(
                   FontAwesomeIcons.cannabis,
-                  color: AppColors.prizeGreen.withOpacity(0.85),
+                  color: AppColors.prizeGreen.op(0.85),
                   size: 24,
                 ),
               ],
@@ -136,7 +136,7 @@ class WinnerCard extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.card_giftcard_rounded, color: AppColors.textSecondary.withOpacity(0.8), size: 14),
+              Icon(Icons.card_giftcard_rounded, color: AppColors.textSecondary.op(0.8), size: 14),
               const SizedBox(width: 6),
               Text(
                 '10g cannabis',
@@ -144,7 +144,7 @@ class WinnerCard extends ConsumerWidget {
                   fontFamily: 'Oxanium',
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
-                  color: AppColors.textSecondary.withOpacity(0.9),
+                  color: AppColors.textSecondary.op(0.9),
                 ),
               ),
             ],
