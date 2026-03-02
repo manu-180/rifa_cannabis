@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -12,9 +11,6 @@ const _reserveHeight = 72.0;
 const _chartHeight = 200.0;
 const _innerRadius = 42.0;
 const _outerRadius = 94.0;
-
-// Logs de diagnóstico solo en release; en debug ya se ven los errores de widget.
-void _log(String msg) => debugPrint('[PIE_CHART] $msg');
 
 class ChancesPieChart extends ConsumerStatefulWidget {
   const ChancesPieChart({super.key});
@@ -109,11 +105,9 @@ class _ChancesPieChartState extends ConsumerState<ChancesPieChart>
   }
 
   void _runSimulation(List<BuyerStats> stats) {
-    _log('runSimulation: stats.length=${stats.length}');
     if (stats.isEmpty) return;
     final picked = _pickWeightedRandomSection(stats);
     final randomAngle = _randomDegreeInSection(picked, stats);
-    _log('runSimulation: picked=$picked angle=$randomAngle');
     setState(() {
       _simulatedSectionIndex = null;
       _simulatedWinnerName = null;
@@ -144,12 +138,10 @@ class _ChancesPieChartState extends ConsumerState<ChancesPieChart>
   @override
   void initState() {
     super.initState();
-    _log('initState');
     _needleController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2800),
     )..addStatusListener((status) {
-        _log('needle animation status: $status');
         if (status != AnimationStatus.completed) return;
         if (!_isSimulationSpinning || _pendingSimSectionIndex == null) return;
         if (!mounted) return;
@@ -166,25 +158,19 @@ class _ChancesPieChartState extends ConsumerState<ChancesPieChart>
 
   @override
   void dispose() {
-    _log('dispose');
     _needleController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    _log('build() start');
     final stats = ref.watch(buyerStatsProvider);
-    _log('build() stats.length=${stats.length}');
-
     final winnerIdx = ref.watch(winnerSectionIndexProvider);
     final winnerAngle = ref.watch(winnerNeedleAngleProvider);
-    _log('build() winnerIdx=$winnerIdx winnerAngle=$winnerAngle');
 
     if (winnerIdx != null && stats.isNotEmpty && winnerIdx < stats.length && !_needleAnimationScheduled) {
       _needleTargetAngleDeg = winnerAngle ?? _middleDegreeForSection(winnerIdx, stats);
       _needleAnimationScheduled = true;
-      _log('build() scheduling needle animation to $_needleTargetAngleDeg');
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _needleController.forward(from: 0);
       });
@@ -284,21 +270,17 @@ class _ChancesPieChartState extends ConsumerState<ChancesPieChart>
   }
 
   Widget _buildChartArea(List<BuyerStats> stats) {
-    _log('_buildChartArea: stats.length=${stats.length} touchedIndex=$_touchedIndex');
-
     return LayoutBuilder(
       builder: (context, constraints) {
         final w = constraints.maxWidth;
         final centerX = w / 2;
         final centerY = _chartHeight / 2;
-        _log('_buildChartArea LayoutBuilder: w=$w centerX=$centerX');
 
         // Estado del ganador simulado — calculado aquí para no cambiar
         // la estructura del árbol de widgets condicionalmente.
         final showSimWinner = _simulatedSectionIndex != null &&
             _simulatedWinnerName != null &&
             _simulatedSectionIndex! < stats.length;
-        _log('_buildChartArea: showSimWinner=$showSimWinner simWinner=$_simulatedWinnerName');
 
         return SizedBox(
           height: _chartHeight + _reserveHeight,
@@ -315,16 +297,10 @@ class _ChancesPieChartState extends ConsumerState<ChancesPieChart>
                       event.localPosition.dy - centerY,
                     );
                     final idx = _hitTestSection(offset, stats);
-                    if (idx != _touchedIndex) {
-                      _log('hover: touchedIndex=$idx');
-                      setState(() => _touchedIndex = idx);
-                    }
+                    if (idx != _touchedIndex) setState(() => _touchedIndex = idx);
                   },
                   onExit: (_) {
-                    if (_touchedIndex != -1) {
-                      _log('hover exit');
-                      setState(() => _touchedIndex = -1);
-                    }
+                    if (_touchedIndex != -1) setState(() => _touchedIndex = -1);
                   },
                   child: GestureDetector(
                     onTapDown: (details) {
@@ -333,7 +309,6 @@ class _ChancesPieChartState extends ConsumerState<ChancesPieChart>
                         details.localPosition.dy - centerY,
                       );
                       final idx = _hitTestSection(offset, stats);
-                      _log('tap: touchedIndex=$idx');
                       setState(() => _touchedIndex = idx);
                     },
                     child: CustomPaint(
@@ -476,15 +451,11 @@ class _CalloutContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    _log('_CalloutContent.build: touchedIndex=$touchedIndex stats=${stats.length}');
-
     final valid = touchedIndex >= 0 && touchedIndex < stats.length;
     if (!valid) {
       // Retorna SizedBox.expand() — ocupa el espacio pero no dibuja nada.
       return const SizedBox.expand();
     }
-
-    _log('_CalloutContent: mostrando callout para idx=$touchedIndex');
 
     final idx = touchedIndex;
     final angleDeg = _middleDegForSection(idx);
@@ -592,15 +563,11 @@ class _DonutPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    _log('_DonutPainter.paint: ${stats.length} secciones size=$size');
     final cx = size.width / 2;
     final cy = size.height / 2;
     final center = Offset(cx, cy);
     final total = stats.fold<double>(0, (s, e) => s + e.ticketCount);
-    if (total <= 0) {
-      _log('_DonutPainter: total=0, nada que dibujar');
-      return;
-    }
+    if (total <= 0) return;
 
     final strokeWidth = outerRadius - innerRadius;
     final drawRadius = innerRadius + strokeWidth / 2;
@@ -637,7 +604,6 @@ class _DonutPainter extends CustomPainter {
       }
       startAngle += sweepAngle;
     }
-    _log('_DonutPainter.paint: OK');
   }
 
   @override
@@ -721,7 +687,6 @@ class _SimulatedWinnerBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    _log('_SimulatedWinnerBlock.build: winner=$winnerName');
     return Center(
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
