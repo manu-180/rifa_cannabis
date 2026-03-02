@@ -11,19 +11,17 @@ void main() async {
 
   final url = EnvConfig.supabaseUrl;
   final anonKey = EnvConfig.supabaseAnonKey;
-  debugPrint('🔐 [LOGIN DEBUG] SUPABASE_URL cargada: ${url.isEmpty ? "VACÍA (problema en web sin dart-define)" : "OK (${url.length} chars)"}');
-  debugPrint('🔐 [LOGIN DEBUG] SUPABASE_ANON_KEY cargada: ${anonKey.isEmpty ? "VACÍA (auth fallará)" : "OK (${anonKey.length} chars)"}');
 
-  await Supabase.initialize(
-    url: url,
-    anonKey: anonKey,
-  );
+  debugPrint('[ENV] SUPABASE_URL: ${url.isEmpty ? "VACÍA ❌" : "OK (${url.length} chars) ✅"}');
+  debugPrint('[ENV] SUPABASE_ANON_KEY: ${anonKey.isEmpty ? "VACÍA ❌" : "OK (${anonKey.length} chars) ✅"}');
 
-  runApp(
-    const ProviderScope(
-      child: MyApp(),
-    ),
-  );
+  if (url.isEmpty || anonKey.isEmpty) {
+    debugPrint('[ENV] ❌ Variables vacías — buildear con --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_ANON_KEY=...');
+  }
+
+  await Supabase.initialize(url: url, anonKey: anonKey);
+
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends StatelessWidget {
