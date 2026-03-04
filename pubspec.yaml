@@ -26,7 +26,8 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  assets: []
+  assets:
+    - .env
 
 # Icono cannabis en app (Android/iOS). Ejecutar: dart run flutter_launcher_icons
 flutter_launcher_icons:

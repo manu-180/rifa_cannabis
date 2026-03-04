@@ -7,10 +7,10 @@ import 'package:rifa_cannabis/features/raffle/domain/models/buyer_stats.dart';
 import 'package:rifa_cannabis/features/raffle/presentation/providers/raffle_provider.dart';
 import 'package:rifa_cannabis/features/raffle/presentation/widgets/premium_card.dart';
 
-const _reserveHeight = 72.0;
-const _chartHeight = 200.0;
-const _innerRadius = 42.0;
-const _outerRadius = 94.0;
+const _reserveHeight = 44.0;
+const _chartHeight   = 238.0;
+const _innerRadius   = 44.0;
+const _outerRadius   = 100.0;
 
 class ChancesPieChart extends ConsumerStatefulWidget {
   const ChancesPieChart({super.key});
@@ -20,10 +20,13 @@ class ChancesPieChart extends ConsumerStatefulWidget {
 }
 
 class _ChancesPieChartState extends ConsumerState<ChancesPieChart>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   int _touchedIndex = -1;
 
   late final AnimationController _needleController;
+  late final AnimationController _hoverController;
+  late final AnimationController _glowController;
+
   double _needleTargetAngleDeg = 270;
   bool _needleAnimationScheduled = false;
 
@@ -154,11 +157,23 @@ class _ChancesPieChartState extends ConsumerState<ChancesPieChart>
           _pendingSimWinnerName = null;
         });
       });
+
+    _hoverController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 260),
+    );
+
+    _glowController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2600),
+    )..repeat(reverse: true);
   }
 
   @override
   void dispose() {
     _needleController.dispose();
+    _hoverController.dispose();
+    _glowController.dispose();
     super.dispose();
   }
 
@@ -195,7 +210,7 @@ class _ChancesPieChartState extends ConsumerState<ChancesPieChart>
               ),
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 14),
           if (stats.isEmpty)
             SizedBox(
               height: _chartHeight + _reserveHeight,
@@ -208,6 +223,26 @@ class _ChancesPieChartState extends ConsumerState<ChancesPieChart>
             )
           else
             _buildChartArea(stats),
+
+          // ── Ganador simulado: aparece abajo de la rueda sin expandir el layout.
+          // Espacio fijo reservado; el bloque solo hace fade in (sin SizeTransition).
+          SizedBox(
+            height: 46,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 280),
+              transitionBuilder: (child, animation) => FadeTransition(
+                opacity: animation,
+                child: child,
+              ),
+              child: (_simulatedSectionIndex != null && _simulatedWinnerName != null)
+                  ? Padding(
+                      key: const ValueKey('sim_winner'),
+                      padding: const EdgeInsets.only(top: 6),
+                      child: _SimulatedWinnerBlock(winnerName: _simulatedWinnerName!),
+                    )
+                  : const SizedBox.shrink(key: ValueKey('sim_empty')),
+            ),
+          ),
         ],
       ),
     );
@@ -276,18 +311,12 @@ class _ChancesPieChartState extends ConsumerState<ChancesPieChart>
         final centerX = w / 2;
         final centerY = _chartHeight / 2;
 
-        // Estado del ganador simulado — calculado aquí para no cambiar
-        // la estructura del árbol de widgets condicionalmente.
-        final showSimWinner = _simulatedSectionIndex != null &&
-            _simulatedWinnerName != null &&
-            _simulatedSectionIndex! < stats.length;
-
         return SizedBox(
           height: _chartHeight + _reserveHeight,
           child: Stack(
             clipBehavior: Clip.none,
             children: [
-              // ── 1) Donut chart ───────────────────────────────────────────
+              // ── 1) Donut con efecto hover épico ──────────────────────────
               SizedBox(
                 height: _chartHeight,
                 child: MouseRegion(
@@ -297,10 +326,22 @@ class _ChancesPieChartState extends ConsumerState<ChancesPieChart>
                       event.localPosition.dy - centerY,
                     );
                     final idx = _hitTestSection(offset, stats);
-                    if (idx != _touchedIndex) setState(() => _touchedIndex = idx);
+                    if (idx != _touchedIndex) {
+                      setState(() => _touchedIndex = idx);
+                      if (idx >= 0) {
+                        // Siempre replay desde 0: tanto al entrar por primera vez
+                        // como al cambiar de porción → el bounce se ve en cada transición.
+                        _hoverController.forward(from: 0);
+                      } else {
+                        _hoverController.reverse();
+                      }
+                    }
                   },
                   onExit: (_) {
-                    if (_touchedIndex != -1) setState(() => _touchedIndex = -1);
+                    if (_touchedIndex != -1) {
+                      setState(() => _touchedIndex = -1);
+                      _hoverController.reverse();
+                    }
                   },
                   child: GestureDetector(
                     onTapDown: (details) {
@@ -308,25 +349,30 @@ class _ChancesPieChartState extends ConsumerState<ChancesPieChart>
                         details.localPosition.dx - centerX,
                         details.localPosition.dy - centerY,
                       );
-                      final idx = _hitTestSection(offset, stats);
-                      setState(() => _touchedIndex = idx);
+                      setState(() => _touchedIndex = _hitTestSection(offset, stats));
                     },
-                    child: CustomPaint(
-                      size: Size(w, _chartHeight),
-                      painter: _DonutPainter(
-                        stats: stats,
-                        colors: _colors,
-                        innerRadius: _innerRadius,
-                        outerRadius: _outerRadius,
-                        gapDeg: 1.2,
+                    child: AnimatedBuilder(
+                      animation: Listenable.merge([_hoverController, _glowController]),
+                      builder: (_, __) => CustomPaint(
+                        size: Size(w, _chartHeight),
+                        painter: _DonutPainter(
+                          stats: stats,
+                          colors: _colors,
+                          innerRadius: _innerRadius,
+                          outerRadius: _outerRadius,
+                          gapDeg: 1.2,
+                          touchedIndex: _touchedIndex,
+                          hoverProgress: _hoverController.value,
+                          glowPulse: Curves.easeInOut.transform(_glowController.value),
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
 
-              // ── 2) Aguja ─────────────────────────────────────────────────
-              // Siempre presente (no condicional) para no cambiar estructura.
+              // ── 2) Aguja ──────────────────────────────────────────────────
+              // Siempre presente, sin condicionales que cambien la estructura.
               SizedBox(
                 height: _chartHeight,
                 child: Center(
@@ -344,11 +390,8 @@ class _ChancesPieChartState extends ConsumerState<ChancesPieChart>
                 ),
               ),
 
-              // ── 3) Callout ───────────────────────────────────────────────
-              // FIX CRÍTICO: Positioned.fill AQUÍ en el Stack, NO dentro del
-              // IgnorePointer. Un ParentDataWidget (Positioned) debe ser hijo
-              // directo del Stack; de lo contrario dart2js en release mode
-              // falla con un type cast de StackParentData.
+              // ── 3) Callout 360° ───────────────────────────────────────────
+              // FIX CRÍTICO: Positioned.fill hijo directo del Stack.
               Positioned.fill(
                 child: IgnorePointer(
                   child: _CalloutContent(
@@ -360,22 +403,15 @@ class _ChancesPieChartState extends ConsumerState<ChancesPieChart>
                 ),
               ),
 
-              // ── 4) Ganador simulado ──────────────────────────────────────
-              // Siempre presente con Opacity para NO agregar/quitar Positioned
-              // del árbol (cambios estructurales en Stack también causan el
-              // cast failure en release mode).
-              Positioned(
-                left: 0, right: 0,
+              // ── 4) Slot estructural (siempre presente) ────────────────────
+              // CRÍTICO: no quitar/agregar Positioned del árbol en release mode.
+              // El ganador simulado ahora se muestra en el Column exterior.
+              const Positioned(
+                left: 0,
+                right: 0,
                 top: _chartHeight,
                 height: _reserveHeight,
-                child: IgnorePointer(
-                  child: Opacity(
-                    opacity: showSimWinner ? 1.0 : 0.0,
-                    child: showSimWinner
-                        ? _SimulatedWinnerBlock(winnerName: _simulatedWinnerName!)
-                        : const SizedBox.expand(),
-                  ),
-                ),
+                child: IgnorePointer(child: SizedBox.expand()),
               ),
             ],
           ),
@@ -386,10 +422,9 @@ class _ChancesPieChartState extends ConsumerState<ChancesPieChart>
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// _CalloutContent: reemplaza _CalloutLayer.
-// Ahora es hijo de Positioned.fill > IgnorePointer, así que llena el espacio
-// disponible. Devuelve un Stack interno con los elementos del callout.
-// NUNCA devuelve Positioned.fill (eso causaba el type cast failure).
+// _CalloutContent – posicionamiento 360° profesional
+// Lógica: lane derecho/izquierdo según cosA, posición vertical sigue sinA.
+// La card se desplaza arriba/abajo siguiendo la posición real del segmento.
 // ─────────────────────────────────────────────────────────────────────────────
 class _CalloutContent extends StatelessWidget {
   const _CalloutContent({
@@ -415,13 +450,11 @@ class _CalloutContent extends StatelessWidget {
     Color(0xFFBA68C8),
   ];
 
-  static const _ringRadius = 54.0;
+  static const _sideDist    = _outerRadius + 64.0;
+  static const _cardWidth   = 164.0;
+  static const _cardHeight  = 44.0;
+  static const _margin      = 8.0;
   static const _chartCenterY = _chartHeight / 2;
-  static const _cardWidth = 160.0;
-  static const _cardHeight = 44.0;
-  static const _margin = 12.0;
-  static const _gapFromRing = 28.0;
-  static const _extraGapBelowChart = 14.0;
 
   double _middleDegForSection(int index) {
     final total = stats.fold<double>(0, (s, e) => s + e.ticketCount);
@@ -432,87 +465,71 @@ class _CalloutContent extends StatelessWidget {
     return cumulative / total * 360 + span / 2;
   }
 
-  Offset _pointOnRing(double deg) {
-    final rad = deg * math.pi / 180;
-    return Offset(
-      centerX + _ringRadius * math.cos(rad),
-      _chartCenterY + _ringRadius * math.sin(rad),
-    );
-  }
-
-  static double _normDeg(double deg) => (deg % 360 + 360) % 360;
-
-  _CalloutZone _zone(double deg) {
-    final a = _normDeg(deg);
-    if (a >= 270 || a < 60) return _CalloutZone.right;
-    if (a >= 60 && a < 120) return _CalloutZone.bottom;
-    return _CalloutZone.left;
-  }
-
   @override
   Widget build(BuildContext context) {
     final valid = touchedIndex >= 0 && touchedIndex < stats.length;
-    if (!valid) {
-      // Retorna SizedBox.expand() — ocupa el espacio pero no dibuja nada.
-      return const SizedBox.expand();
-    }
+    if (!valid) return const SizedBox.expand();
 
     final idx = touchedIndex;
     final angleDeg = _middleDegForSection(idx);
-    final point = _pointOnRing(angleDeg);
+    final rad = angleDeg * math.pi / 180;
+    final cosA = math.cos(rad);
+    final sinA = math.sin(rad);
     final color = _colors[idx % _colors.length];
-    final zone = _zone(angleDeg);
-    final w = chartWidth;
-    final reserveCenterY = _chartHeight + _reserveHeight / 2;
 
-    double cardLeft;
-    double cardTop;
-    Offset elbow;
-    Offset lineEnd;
+    // Punto de conexión justo en el borde exterior del arco
+    final ringPoint = Offset(
+      centerX + (_outerRadius + 5) * cosA,
+      _chartCenterY + (_outerRadius + 5) * sinA,
+    );
 
-    switch (zone) {
-      case _CalloutZone.right:
-        cardLeft = math.min(centerX + _ringRadius + _gapFromRing, w - _cardWidth - _margin);
-        cardLeft = math.max(_margin, cardLeft);
-        cardTop = _chartCenterY - _cardHeight / 2;
-        elbow = Offset(cardLeft, point.dy);
-        lineEnd = Offset(cardLeft, _chartCenterY);
-        break;
-      case _CalloutZone.left:
-        cardLeft = math.max(_margin, centerX - _ringRadius - _gapFromRing - _cardWidth);
-        cardLeft = math.min(cardLeft, w - _cardWidth - _margin);
-        cardTop = _chartCenterY - _cardHeight / 2;
-        elbow = Offset(cardLeft + _cardWidth, point.dy);
-        lineEnd = Offset(cardLeft + _cardWidth, _chartCenterY);
-        break;
-      case _CalloutZone.bottom:
-        cardLeft = centerX - _cardWidth / 2;
-        cardLeft = math.max(_margin, math.min(cardLeft, w - _cardWidth - _margin));
-        cardTop = reserveCenterY - _cardHeight / 2 + _extraGapBelowChart;
-        elbow = Offset(point.dx, cardTop);
-        lineEnd = Offset(cardLeft + _cardWidth / 2, cardTop);
-        break;
+    // Lane derecho si cosA >= 0 (derecha o abajo), izquierdo si cosA < 0
+    final rightLane = cosA >= 0;
+
+    // Posición horizontal de la card (clampeada dentro del chart)
+    final double cardLeft;
+    if (rightLane) {
+      cardLeft = (centerX + _sideDist)
+          .clamp(_margin, chartWidth - _cardWidth - _margin);
+    } else {
+      cardLeft = (centerX - _sideDist - _cardWidth)
+          .clamp(_margin, chartWidth - _cardWidth - _margin);
     }
 
-    // Stack normal (no Positioned.fill) — su padre ya es Positioned.fill.
+    // Posición vertical: buena distancia al círculo (carteles bien separados).
+    const minBias = 98.0;
+    const spread  = 138.0;
+    final rawBias = sinA * spread;
+    final vertBias = sinA >= 0
+        ? math.max(rawBias, minBias)
+        : math.min(rawBias, -minBias);
+
+    final cardTop = (_chartCenterY + vertBias - _cardHeight / 2)
+        .clamp(4.0, _chartHeight + _reserveHeight - _cardHeight - 4.0);
+
+    // La línea conecta el punto del anillo con el borde "cercano" de la card
+    final lineEnd = Offset(
+      rightLane ? cardLeft : cardLeft + _cardWidth,
+      cardTop + _cardHeight / 2,
+    );
+
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        // Línea L del callout (CustomPaint sobre toda el área)
+        // Línea de conexión
         Positioned.fill(
           child: CustomPaint(
             painter: _CalloutLinePainter(
-              point: point,
-              elbow: elbow,
-              lineEnd: lineEnd,
+              start: ringPoint,
+              end: lineEnd,
               color: color,
             ),
           ),
         ),
-        // Punto en el anillo
+        // Punto pulsante en el anillo
         Positioned(
-          left: point.dx - 5,
-          top: point.dy - 5,
+          left: ringPoint.dx - 5,
+          top: ringPoint.dy - 5,
           child: Container(
             width: 10,
             height: 10,
@@ -520,11 +537,11 @@ class _CalloutContent extends StatelessWidget {
               shape: BoxShape.circle,
               color: color,
               border: Border.all(color: AppColors.textPrimary.op(0.4), width: 1),
-              boxShadow: [BoxShadow(color: color.op(0.5), blurRadius: 6)],
+              boxShadow: [BoxShadow(color: color.op(0.6), blurRadius: 8)],
             ),
           ),
         ),
-        // Card del comprador
+        // Card con nombre y porcentaje
         Positioned(
           left: cardLeft,
           top: cardTop,
@@ -540,12 +557,16 @@ class _CalloutContent extends StatelessWidget {
   }
 }
 
-enum _CalloutZone { left, bottom, right }
-
 // ─────────────────────────────────────────────────────────────────────────────
-// Painters y widgets auxiliares
+// _DonutPainter – diseño tecnológico profesional.
+// Capas (fondo → frente):
+//   0) Fondo del agujero interior + decoración radar
+//   1) Glow ambiental por sección (blur suave, respira con glowPulse)
+//   2) Arcos principales + rim highlight + inner edge
+//   3) Anillo decorativo exterior con marcas de instrumento
+//   4) Etiquetas % en las secciones grandes (solo sin hover)
+//   5) Sección hover elevada con doble halo épico
 // ─────────────────────────────────────────────────────────────────────────────
-
 class _DonutPainter extends CustomPainter {
   _DonutPainter({
     required this.stats,
@@ -553,6 +574,9 @@ class _DonutPainter extends CustomPainter {
     required this.innerRadius,
     required this.outerRadius,
     this.gapDeg = 1.2,
+    this.touchedIndex = -1,
+    this.hoverProgress = 0.0,
+    this.glowPulse = 0.0,
   });
 
   final List<BuyerStats> stats;
@@ -560,6 +584,9 @@ class _DonutPainter extends CustomPainter {
   final double innerRadius;
   final double outerRadius;
   final double gapDeg;
+  final int touchedIndex;
+  final double hoverProgress;
+  final double glowPulse;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -573,77 +600,291 @@ class _DonutPainter extends CustomPainter {
     final drawRadius = innerRadius + strokeWidth / 2;
     final gapRad = gapDeg * math.pi / 180;
     final halfGap = gapRad / 2;
+    final hasHover = touchedIndex >= 0 && hoverProgress > 0;
 
-    double startAngle = 0;
+    final starts = <double>[];
+    final sweeps = <double>[];
+    double ang = 0;
+    for (final st in stats) {
+      starts.add(ang);
+      final sw = (st.ticketCount / total) * 2 * math.pi;
+      sweeps.add(sw);
+      ang += sw;
+    }
 
+    // ── Layer 0: Inner hole background + radar decoration ─────────────────────
+    _paintInnerDecor(canvas, center);
+
+    // ── Layer 1: Ambient glow — breathing (non-hover sections) ───────────────
     for (var i = 0; i < stats.length; i++) {
-      final sweepAngle = (stats[i].ticketCount / total) * 2 * math.pi;
-      final effectiveStart = startAngle + halfGap;
-      final effectiveSweep = sweepAngle - gapRad;
+      if (i == touchedIndex) continue;
+      final effStart = starts[i] + halfGap;
+      final effSweep = sweeps[i] - gapRad;
+      if (effSweep <= 0) continue;
+      final color = colors[i % colors.length];
+      final alpha = (0.08 + glowPulse * 0.07) * (hasHover ? 0.28 : 1.0);
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: drawRadius),
+        effStart, effSweep, false,
+        Paint()
+          ..color = color.op(alpha.clamp(0.0, 1.0))
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = strokeWidth + 20
+          ..strokeCap = StrokeCap.butt
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 9),
+      );
+    }
 
-      if (effectiveSweep > 0) {
-        final color = colors[i % colors.length];
-        final rect = Rect.fromCircle(center: center, radius: drawRadius);
+    // ── Layer 2: Main arcs (non-hover) ────────────────────────────────────────
+    for (var i = 0; i < stats.length; i++) {
+      if (i == touchedIndex) continue;
+      final effStart = starts[i] + halfGap;
+      final effSweep = sweeps[i] - gapRad;
+      if (effSweep <= 0) continue;
+      final color = colors[i % colors.length];
+      final baseOp = hasHover ? 0.36 : 0.87;
 
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: drawRadius),
+        effStart, effSweep, false,
+        Paint()
+          ..color = color.op(baseOp)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = strokeWidth
+          ..strokeCap = StrokeCap.butt,
+      );
+
+      // Outer rim highlight — simula bisel 3D
+      final rimAlpha = (0.28 + glowPulse * 0.18) * (hasHover ? 0.28 : 1.0);
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: outerRadius - 1.5),
+        effStart, effSweep, false,
+        Paint()
+          ..color = color.op(rimAlpha.clamp(0.0, 1.0))
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.5,
+      );
+
+      // Inner edge line
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: innerRadius + 1.5),
+        effStart, effSweep, false,
+        Paint()
+          ..color = color.op((baseOp * 0.45).clamp(0.0, 1.0))
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.0,
+      );
+    }
+
+    // ── Layer 3: Outer instrument ring + tick marks ───────────────────────────
+    _paintOuterDecor(canvas, center);
+
+    // ── Layer 4: % labels (only in idle state) ────────────────────────────────
+    if (!hasHover) _paintLabels(canvas, center, starts, sweeps, total);
+
+    // ── Layer 5: Hover section — elevated + epic double-glow ─────────────────
+    if (touchedIndex >= 0 && touchedIndex < stats.length) {
+      final effStart = starts[touchedIndex] + halfGap;
+      final effSweep = sweeps[touchedIndex] - gapRad;
+      if (effSweep > 0) {
+        final mid = starts[touchedIndex] + sweeps[touchedIndex] / 2;
+        final progress = hoverProgress.clamp(0.0, 1.0);
+        final elevNorm = Curves.easeOutBack.transform(progress);
+        final elevation = elevNorm * 16.0;
+        final color = colors[touchedIndex % colors.length];
+
+        canvas.save();
+        canvas.translate(elevation * math.cos(mid), elevation * math.sin(mid));
+
+        // Wide outer halo
         canvas.drawArc(
-          rect, effectiveStart, effectiveSweep, false,
+          Rect.fromCircle(center: center, radius: drawRadius),
+          effStart, effSweep, false,
           Paint()
-            ..color = color.op(0.85)
+            ..color = color.op((progress * 0.36).clamp(0.0, 1.0))
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = strokeWidth + 26
+            ..strokeCap = StrokeCap.butt
+            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 13),
+        );
+        // Tight halo
+        canvas.drawArc(
+          Rect.fromCircle(center: center, radius: drawRadius),
+          effStart, effSweep, false,
+          Paint()
+            ..color = color.op((progress * 0.58).clamp(0.0, 1.0))
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = strokeWidth + 7
+            ..strokeCap = StrokeCap.butt
+            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5),
+        );
+        // Arc at 100% brightness
+        canvas.drawArc(
+          Rect.fromCircle(center: center, radius: drawRadius),
+          effStart, effSweep, false,
+          Paint()
+            ..color = color.op(1.0)
             ..style = PaintingStyle.stroke
             ..strokeWidth = strokeWidth
             ..strokeCap = StrokeCap.butt,
         );
+        // Blazing rim highlight
+        canvas.drawArc(
+          Rect.fromCircle(center: center, radius: outerRadius - 1.5),
+          effStart, effSweep, false,
+          Paint()
+            ..color = color.op(0.95)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 3.0,
+        );
 
-        final outerRect = Rect.fromCircle(center: center, radius: outerRadius);
-        canvas.drawArc(outerRect, effectiveStart, effectiveSweep, false,
-          Paint()..color = color.op(0.5)..style = PaintingStyle.stroke..strokeWidth = 1.0);
-
-        final innerRect = Rect.fromCircle(center: center, radius: innerRadius);
-        canvas.drawArc(innerRect, effectiveStart, effectiveSweep, false,
-          Paint()..color = color.op(0.5)..style = PaintingStyle.stroke..strokeWidth = 1.0);
+        canvas.restore();
       }
-      startAngle += sweepAngle;
+    }
+  }
+
+  void _paintInnerDecor(Canvas canvas, Offset center) {
+    // Solid dark background for the hole
+    canvas.drawCircle(center, innerRadius - 0.5,
+        Paint()..color = const Color(0xFF030709)..style = PaintingStyle.fill);
+
+    // Concentric guide rings (radar / target sight)
+    for (final r in [innerRadius * 0.72, innerRadius * 0.44, innerRadius * 0.18]) {
+      canvas.drawCircle(center, r,
+          Paint()
+            ..color = AppColors.primary.op(0.07)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 0.6);
+    }
+
+    // Crosshair lines inside the hole
+    for (var deg = 0.0; deg < 180; deg += 45) {
+      final rad = deg * math.pi / 180;
+      final r = innerRadius - 5;
+      canvas.drawLine(
+        Offset(center.dx - math.cos(rad) * r, center.dy - math.sin(rad) * r),
+        Offset(center.dx + math.cos(rad) * r, center.dy + math.sin(rad) * r),
+        Paint()
+          ..color = AppColors.primary.op(0.07)
+          ..strokeWidth = 0.5
+          ..strokeCap = StrokeCap.round,
+      );
+    }
+  }
+
+  void _paintOuterDecor(Canvas canvas, Offset center) {
+    final decoR   = outerRadius + 7.0;
+    final tickIn  = outerRadius + 10.0;
+    final tickOut = outerRadius + 16.0;
+
+    // Primary thin ring (breathing)
+    canvas.drawCircle(center, decoR,
+        Paint()
+          ..color = AppColors.primary.op(0.14 + glowPulse * 0.10)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.9);
+
+    // Outer boundary ring
+    canvas.drawCircle(center, tickOut + 2,
+        Paint()
+          ..color = AppColors.primary.op(0.06)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.5);
+
+    // Instrument tick marks every 10°
+    for (var deg = 0.0; deg < 360; deg += 10) {
+      final isCardinal = deg % 90 == 0;
+      final isMajor    = deg % 30 == 0;
+      final rad  = deg * math.pi / 180;
+      final cosA = math.cos(rad);
+      final sinA = math.sin(rad);
+      final inner = isMajor ? tickIn - 1.5 : tickIn + 1.5;
+      final outer = isCardinal ? tickOut + 1.5 : isMajor ? tickOut : tickOut - 2.0;
+      canvas.drawLine(
+        Offset(center.dx + cosA * inner, center.dy + sinA * inner),
+        Offset(center.dx + cosA * outer, center.dy + sinA * outer),
+        Paint()
+          ..color = AppColors.primary.op(isCardinal ? 0.55 : isMajor ? 0.24 : 0.10)
+          ..strokeWidth = isCardinal ? 1.4 : isMajor ? 0.9 : 0.6,
+      );
+    }
+
+    // Inner hole border (breathing)
+    canvas.drawCircle(center, innerRadius - 1,
+        Paint()
+          ..color = AppColors.primary.op(0.18 + glowPulse * 0.12)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 0.9);
+  }
+
+  void _paintLabels(Canvas canvas, Offset center, List<double> starts,
+      List<double> sweeps, double total) {
+    final labelR = outerRadius + 22.0;
+    for (var i = 0; i < stats.length; i++) {
+      final percent = stats[i].ticketCount / total * 100;
+      if (percent < 8) continue;
+      final midAngle = starts[i] + sweeps[i] / 2;
+      final color = colors[i % colors.length];
+      final pos = Offset(
+        center.dx + labelR * math.cos(midAngle),
+        center.dy + labelR * math.sin(midAngle),
+      );
+      final tp = TextPainter(
+        text: TextSpan(
+          text: '${percent.toStringAsFixed(0)}%',
+          style: TextStyle(
+            color: color.op(0.82),
+            fontSize: 9.0,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.4,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      tp.paint(canvas, Offset(pos.dx - tp.width / 2, pos.dy - tp.height / 2));
     }
   }
 
   @override
   bool shouldRepaint(covariant _DonutPainter old) =>
-      old.stats != stats || old.innerRadius != innerRadius || old.outerRadius != outerRadius;
+      old.stats != stats ||
+      old.innerRadius != innerRadius ||
+      old.outerRadius != outerRadius ||
+      old.touchedIndex != touchedIndex ||
+      old.hoverProgress != hoverProgress ||
+      old.glowPulse != glowPulse;
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// _CalloutLinePainter – línea recta simple del punto al borde de la card
+// ─────────────────────────────────────────────────────────────────────────────
 class _CalloutLinePainter extends CustomPainter {
   _CalloutLinePainter({
-    required this.point,
-    required this.elbow,
-    required this.lineEnd,
+    required this.start,
+    required this.end,
     required this.color,
   });
 
-  final Offset point;
-  final Offset elbow;
-  final Offset lineEnd;
+  final Offset start;
+  final Offset end;
   final Color color;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final path = Path()
-      ..moveTo(point.dx, point.dy)
-      ..lineTo(elbow.dx, elbow.dy)
-      ..lineTo(lineEnd.dx, lineEnd.dy);
-    canvas.drawPath(
-      path,
+    canvas.drawLine(
+      start,
+      end,
       Paint()
         ..color = color.op(0.65)
-        ..strokeWidth = 1.8
+        ..strokeWidth = 1.6
         ..style = PaintingStyle.stroke
-        ..strokeCap = StrokeCap.round
-        ..strokeJoin = StrokeJoin.round,
+        ..strokeCap = StrokeCap.round,
     );
   }
 
   @override
   bool shouldRepaint(covariant _CalloutLinePainter old) =>
-      old.point != point || old.elbow != elbow || old.lineEnd != lineEnd || old.color != color;
+      old.start != start || old.end != end || old.color != color;
 }
 
 class _SimulationNotification extends StatelessWidget {
@@ -747,38 +988,90 @@ class _CenterNeedle extends StatelessWidget {
   Widget build(BuildContext context) {
     final rotationRad = (angleDeg - 270) * math.pi / 180;
     return SizedBox(
-      width: 86, height: 86,
+      width: 96, height: 96,
       child: Transform.rotate(
         angle: rotationRad,
-        child: CustomPaint(painter: _NeedlePainter(), size: const Size(86, 86)),
+        child: CustomPaint(painter: _NeedlePainter(), size: const Size(96, 96)),
       ),
     );
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// _NeedlePainter – hub de mira de precisión + aguja con glow
+// ─────────────────────────────────────────────────────────────────────────────
 class _NeedlePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final cx = size.width / 2;
     final cy = size.height / 2;
+    final center = Offset(cx, cy);
 
-    canvas.drawCircle(Offset(cx, cy), 8,
-      Paint()..color = AppColors.surface..style = PaintingStyle.fill);
-    canvas.drawCircle(Offset(cx, cy), 8,
-      Paint()..color = AppColors.primary..style = PaintingStyle.stroke..strokeWidth = 2);
-    canvas.drawCircle(Offset(cx, cy), 6,
-      Paint()..color = AppColors.primary.op(0.4)..style = PaintingStyle.fill);
-
-    final path = Path()
-      ..moveTo(cx, cy - 32)
-      ..lineTo(cx - 6, cy + 4)
-      ..lineTo(cx - 2, cy + 2)
-      ..lineTo(cx, cy + 8)
-      ..lineTo(cx + 2, cy + 2)
-      ..lineTo(cx + 6, cy + 4)
+    // ── Needle ────────────────────────────────────────────────────────────────
+    final needle = Path()
+      ..moveTo(cx, cy - 40)
+      ..lineTo(cx - 5.5, cy + 5)
+      ..lineTo(cx - 1.5, cy + 3)
+      ..lineTo(cx, cy + 10)
+      ..lineTo(cx + 1.5, cy + 3)
+      ..lineTo(cx + 5.5, cy + 5)
       ..close();
-    canvas.drawPath(path, Paint()..color = AppColors.primary..style = PaintingStyle.fill);
-    canvas.drawPath(path, Paint()..color = AppColors.secondary.op(0.6)..style = PaintingStyle.stroke..strokeWidth = 1);
+
+    // Needle glow
+    canvas.drawPath(needle,
+        Paint()
+          ..color = AppColors.primary.op(0.30)
+          ..style = PaintingStyle.fill
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6));
+    // Needle body
+    canvas.drawPath(needle, Paint()..color = AppColors.secondary..style = PaintingStyle.fill);
+    canvas.drawPath(needle,
+        Paint()..color = AppColors.primary..style = PaintingStyle.stroke..strokeWidth = 0.9);
+
+    // ── Hub — targeting sight ──────────────────────────────────────────────────
+    // Outer glow halo
+    canvas.drawCircle(center, 17,
+        Paint()
+          ..color = AppColors.primary.op(0.12)
+          ..style = PaintingStyle.fill
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8));
+
+    // Dark fill background
+    canvas.drawCircle(center, 13,
+        Paint()..color = const Color(0xFF020608)..style = PaintingStyle.fill);
+
+    // Concentric precision rings
+    final rings = [
+      (13.0, 1.5, 0.85),
+      (9.5,  0.9, 0.38),
+      (6.0,  0.7, 0.22),
+    ];
+    for (final r in rings) {
+      canvas.drawCircle(center, r.$1,
+          Paint()
+            ..color = AppColors.primary.op(r.$3)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = r.$2);
+    }
+
+    // Crosshair tick marks on hub
+    for (var deg = 0.0; deg < 360; deg += 90) {
+      final rad = deg * math.pi / 180;
+      canvas.drawLine(
+        Offset(center.dx + math.cos(rad) * 6.5, center.dy + math.sin(rad) * 6.5),
+        Offset(center.dx + math.cos(rad) * 11,  center.dy + math.sin(rad) * 11),
+        Paint()..color = AppColors.primary.op(0.45)..strokeWidth = 0.9,
+      );
+    }
+
+    // Center dot
+    canvas.drawCircle(center, 3.5,
+        Paint()..color = AppColors.primary..style = PaintingStyle.fill);
+    canvas.drawCircle(center, 3.5,
+        Paint()
+          ..color = AppColors.primary.op(0.55)
+          ..style = PaintingStyle.fill
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3));
   }
 
   @override
@@ -801,8 +1094,8 @@ class _CalloutCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: color.op(0.5)),
         boxShadow: [
-          BoxShadow(color: color.op(0.15), blurRadius: 12),
-          BoxShadow(color: Colors.black.op(0.25), blurRadius: 8, offset: const Offset(0, 2)),
+          BoxShadow(color: color.op(0.18), blurRadius: 14),
+          BoxShadow(color: Colors.black.op(0.3), blurRadius: 8, offset: const Offset(0, 2)),
         ],
       ),
       child: Row(

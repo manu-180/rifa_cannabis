@@ -3,45 +3,35 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// Sistema de variables de entorno.
 ///
-/// Prioridad de carga:
-///   1. --dart-define (web production, siempre disponible si se buildea con ese flag)
-///   2. .env en disco (solo móvil/desktop en desarrollo)
+/// Prioridad de lectura (en los getters):
+///   1. --dart-define (producción web y cualquier build con flags)
+///   2. .env cargado desde assets (local web y desktop; el archivo debe estar en pubspec)
 ///
-/// En web NUNCA se intenta cargar el .env desde assets (evita el 404 ruidoso
-/// y el error "Unable to load asset" que confundía el diagnóstico).
+/// Carga: en todos los entornos se intenta cargar .env desde assets.
+/// Para que funcione en local necesitas un archivo .env en la raíz (copia de .env.example).
+/// En producción web se suele buildear con --dart-define y esos valores tienen prioridad.
 class EnvConfig {
   const EnvConfig._();
 
   static Future<void> load() async {
-    // En web las variables vienen siempre de --dart-define.
-    // No tiene sentido intentar cargar .env desde assets en producción.
-    if (kIsWeb) {
-      debugPrint('[ENV] Web: usando --dart-define (no se carga .env en web)');
-      return;
-    }
-
-    // Mobile / Desktop: carga el .env del disco.
     try {
       await dotenv.load(fileName: '.env');
-      debugPrint('[ENV] .env cargado OK');
+      debugPrint('[ENV] .env cargado OK (assets)');
     } catch (e) {
-      debugPrint('[ENV] .env no encontrado en disco: $e');
+      debugPrint('[ENV] .env no cargado: $e');
+      debugPrint('[ENV] Crea .env en la raíz (copia de .env.example) o usa --dart-define al buildear.');
     }
   }
 
   static String get supabaseUrl {
-    // --dart-define tiene prioridad absoluta.
     const fromDefine = String.fromEnvironment('SUPABASE_URL');
     if (fromDefine.isNotEmpty) return fromDefine;
-    // Fallback: .env en disco (solo nativo).
-    if (!kIsWeb) return dotenv.env['SUPABASE_URL'] ?? '';
-    return '';
+    return dotenv.env['SUPABASE_URL'] ?? '';
   }
 
   static String get supabaseAnonKey {
     const fromDefine = String.fromEnvironment('SUPABASE_ANON_KEY');
     if (fromDefine.isNotEmpty) return fromDefine;
-    if (!kIsWeb) return dotenv.env['SUPABASE_ANON_KEY'] ?? '';
-    return '';
+    return dotenv.env['SUPABASE_ANON_KEY'] ?? '';
   }
 }
