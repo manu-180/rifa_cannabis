@@ -227,7 +227,7 @@ class _ChancesPieChartState extends ConsumerState<ChancesPieChart>
           // ── Ganador simulado: aparece abajo de la rueda sin expandir el layout.
           // Espacio fijo reservado; el bloque solo hace fade in (sin SizeTransition).
           SizedBox(
-            height: 46,
+            height: 58,
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 280),
               transitionBuilder: (child, animation) => FadeTransition(
@@ -237,7 +237,7 @@ class _ChancesPieChartState extends ConsumerState<ChancesPieChart>
               child: (_simulatedSectionIndex != null && _simulatedWinnerName != null)
                   ? Padding(
                       key: const ValueKey('sim_winner'),
-                      padding: const EdgeInsets.only(top: 6),
+                      padding: const EdgeInsets.only(top: 8),
                       child: _SimulatedWinnerBlock(winnerName: _simulatedWinnerName!),
                     )
                   : const SizedBox.shrink(key: ValueKey('sim_empty')),
