@@ -47,7 +47,7 @@ class GuaranteedWinnerCard extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            'El sorteo se realiza el 15 de marzo a las 15:00. Siempre hay un ganador: si un solo número fue comprado, ese número gana.',
+            'El sorteo se realiza el 22 de marzo a las 15:00. Siempre hay un ganador: si un solo número fue comprado, ese número gana.',
             style: TextStyle(
               fontFamily: 'Oxanium',
               fontSize: 12,
